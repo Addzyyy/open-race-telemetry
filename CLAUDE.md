@@ -115,9 +115,19 @@ All config via `appsettings.json` / `appsettings.Development.json`. Sections:
 
 ## Agents
 
-- **Use agents (subagents) liberally** — whenever independent pieces of work can run in parallel (reading multiple files, implementing separate modules, running tests while writing code), use subagents. Don't default to doing everything sequentially with direct tool calls.
-- **Use agents for code review** — after implementing a feature, launch a subagent to review all changed files before opening a PR.
-- **Use agents for exploration** — when researching how something works across the codebase, delegate to an Explore agent rather than doing many sequential searches.
+Custom agents are defined in `.claude/agents/`. Use them whenever the task matches their description:
+
+- **`test-writer`** — writing unit tests, integration tests, and test fixtures. Uses xUnit + Testcontainers.
+- **`dotnet-builder`** — implementing .NET services, writing C# code, editing .csproj files, adding NuGet packages.
+- **`reviewer`** — code review for bugs, security issues, architectural violations, and CLAUDE.md consistency.
+- **`infra`** — Docker Compose, TimescaleDB schema, Grafana dashboards, and provisioning.
+
+Prefer these custom agents over generic `general-purpose` agents. Use them liberally — whenever independent pieces of work can run in parallel, delegate to the appropriate agent. Don't default to doing everything sequentially with direct tool calls.
+
+- **Use `test-writer`** after implementing code to write and run tests.
+- **Use `reviewer`** after implementing a feature to review all changed files before opening a PR.
+- **Use `dotnet-builder`** for parallel implementation of independent modules.
+- **Use Explore agent** when researching how something works across the codebase.
 
 ## Git Workflow
 
