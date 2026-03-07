@@ -113,7 +113,17 @@ All config via `appsettings.json` / `appsettings.Development.json`. Sections:
 - **Integration tests** with Testcontainers for `TimescaleWriter` and end-to-end (UDP → DB)
 - Do NOT test F1Game.UDP's decoding — that's the library's responsibility
 
+## Agents
+
+- **Use agents (subagents) liberally** — whenever independent pieces of work can run in parallel (reading multiple files, implementing separate modules, running tests while writing code), use subagents. Don't default to doing everything sequentially with direct tool calls.
+- **Use agents for code review** — after implementing a feature, launch a subagent to review all changed files before opening a PR.
+- **Use agents for exploration** — when researching how something works across the codebase, delegate to an Explore agent rather than doing many sequential searches.
+
 ## Git Workflow
+
+- **Atomic commits**: each commit should be a complete, self-contained step that builds and (where applicable) passes tests. Examples: "add event records", "add PacketMapper + tests", "wire up DI". Never bundle unrelated changes into one commit.
+- **Atomic PRs**: one PR per logical piece of work. Don't combine independent features or fixes into a single PR.
+- **Use `gh` CLI** for creating PRs and pushing branches.
 
 For every new feature or piece of work:
 
@@ -124,11 +134,6 @@ For every new feature or piece of work:
    gh pr create --base main --title "Short description" --body "Summary of changes"
    ```
 4. Do NOT merge the PR — leave it for the user to review and merge
-
-- **Use agents (subagents) liberally** for parallelizing independent work across files
-- **Atomic commits and PRs**: one PR per logical piece of work; each commit should be a complete, self-contained step (e.g. "add event records", "add PacketMapper + tests"). Never bundle unrelated work.
-- **Use agents for code review**: after implementing a feature, launch a subagent to review the code before opening a PR
-- **Use `gh` CLI** for creating PRs and pushing branches
 
 ## Do NOT
 
