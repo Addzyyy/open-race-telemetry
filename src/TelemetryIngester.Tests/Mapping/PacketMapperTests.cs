@@ -622,6 +622,49 @@ public sealed class PacketMapperTests
     }
 
     [Fact]
+    public void MapWeatherForecastSamples_EmitsOnForecastAccuracyChange()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+        var timestamp = DateTimeOffset.UtcNow;
+
+        var samples = new Array64<WeatherForecastSample>();
+        samples[0] = new WeatherForecastSample
+        {
+            SessionType = SessionType.Race,
+            TimeOffset = 5,
+            Weather = Weather.Clear,
+            TrackTemperature = 40,
+            TrackTemperatureChange = TemperatureChange.NoChange,
+            AirTemperature = 30,
+            AirTemperatureChange = TemperatureChange.NoChange,
+            RainPercentage = 0,
+        };
+
+        var dataA = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 1,
+            WeatherForecastSamples = samples,
+            ForecastAccuracy = ForecastAccuracy.Perfect,
+        };
+        var dataB = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 1,
+            WeatherForecastSamples = samples,
+            ForecastAccuracy = ForecastAccuracy.Approximate, // Only accuracy changed
+        };
+
+        var firstCall = mapper.MapWeatherForecastSamples(dataA, header, timestamp);
+        var secondCall = mapper.MapWeatherForecastSamples(dataB, header, timestamp);
+
+        Assert.Single(firstCall);
+        Assert.Single(secondCall);
+        Assert.Equal((int)ForecastAccuracy.Approximate, secondCall[0].ForecastAccuracy);
+    }
+
+    [Fact]
     public void MapWeatherForecastSamples_EmptyWhenZeroSamples()
     {
         var mapper = CreateMapper();

@@ -367,6 +367,7 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
     {
         var hash = new HashCode();
         hash.Add(count);
+        hash.Add((int)data.ForecastAccuracy);
         for (int i = 0; i < count; i++)
         {
             var s = data.WeatherForecastSamples[i];
