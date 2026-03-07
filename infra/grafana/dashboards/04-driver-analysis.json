@@ -65,7 +65,7 @@
           "type": "postgres",
           "uid": "timescaledb"
         },
-        "query": "SELECT DISTINCT session_uid FROM session ORDER BY time DESC LIMIT 20",
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
         "refresh": 2,
         "sort": 0,
         "includeAll": false,

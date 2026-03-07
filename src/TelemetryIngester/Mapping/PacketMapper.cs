@@ -91,7 +91,7 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
         if (packet.TryGetFinalClassificationDataPacket(out var classification))
         {
             // Always emit all cars — race results are session-wide data.
-            var count = Math.Min(classification.NumCars, (byte)22);
+            var count = Math.Min(classification.NumCars, (byte)20);
             for (byte i = 0; i < count; i++)
                 events.Add(MapFinalClassificationData(classification.ClassificationData[i], header, i, now));
             return events;
@@ -440,9 +440,9 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             GridPosition = data.GridPosition,
             Points = data.Points,
             NumPitStops = data.NumPitStops,
-            ResultStatus = (byte)data.ResultStatus,
-            ResultReason = (byte)data.ResultReason,
-            BestLapTimeMs = data.BestLapTimeInMS,
+            ResultStatus = (int)data.ResultStatus,
+            ResultReason = (int)data.ResultReason,
+            BestLapTimeMs = (int)data.BestLapTimeInMS,
             TotalRaceTime = data.TotalRaceTime,
             PenaltiesTime = data.PenaltiesTime,
             NumPenalties = data.NumPenalties,

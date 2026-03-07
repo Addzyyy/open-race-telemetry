@@ -813,9 +813,9 @@ public sealed class PacketMapperTests
         Assert.Equal(3, @event.GridPosition);
         Assert.Equal(25, @event.Points);
         Assert.Equal(1, @event.NumPitStops);
-        Assert.Equal((byte)ResultStatus.Finished, @event.ResultStatus);
-        Assert.Equal((byte)ResultReason.Invalid, @event.ResultReason);
-        Assert.Equal(90500u, @event.BestLapTimeMs);
+        Assert.Equal((int)ResultStatus.Finished, @event.ResultStatus);
+        Assert.Equal((int)ResultReason.Invalid, @event.ResultReason);
+        Assert.Equal(90500, @event.BestLapTimeMs);
         Assert.Equal(5432.123, @event.TotalRaceTime);
         Assert.Equal(0, @event.PenaltiesTime);
         Assert.Equal(0, @event.NumPenalties);

@@ -9,18 +9,18 @@ namespace TelemetryIngester.Events;
 /// </summary>
 public sealed record FinalClassificationEvent : TelemetryEvent
 {
-    public required byte Position { get; init; }
-    public required byte NumLaps { get; init; }
-    public required byte GridPosition { get; init; }
-    public required byte Points { get; init; }
-    public required byte NumPitStops { get; init; }
-    public required byte ResultStatus { get; init; }
-    public required byte ResultReason { get; init; }
-    public required uint BestLapTimeMs { get; init; }
+    public required int Position { get; init; }
+    public required int NumLaps { get; init; }
+    public required int GridPosition { get; init; }
+    public required int Points { get; init; }
+    public required int NumPitStops { get; init; }
+    public required int ResultStatus { get; init; }
+    public required int ResultReason { get; init; }
+    public required int BestLapTimeMs { get; init; }
     public required double TotalRaceTime { get; init; }
-    public required byte PenaltiesTime { get; init; }
-    public required byte NumPenalties { get; init; }
-    public required byte NumTyreStints { get; init; }
+    public required int PenaltiesTime { get; init; }
+    public required int NumPenalties { get; init; }
+    public required int NumTyreStints { get; init; }
 
     /// <summary>
     /// Comma-separated visual tyre compound IDs for each stint (e.g. "16,17,18").
