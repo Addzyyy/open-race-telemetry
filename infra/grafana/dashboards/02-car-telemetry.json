@@ -397,7 +397,8 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "clockms",
+          "decimals": 3,
           "color": {
             "mode": "thresholds"
           },
@@ -415,12 +416,12 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "textMode": "value",
+        "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": [],
+          "calcs": ["lastNotNull"],
           "fields": "",
-          "values": true
+          "values": false
         }
       },
       "targets": [
@@ -429,7 +430,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT time, FLOOR(latest_lap_time_ms / 60000) || ':' || LPAD(FLOOR((latest_lap_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((latest_lap_time_ms % 1000)::text, 3, '0') AS \"Last Lap\" FROM session_history WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) AND latest_lap_time_ms IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawSql": "SELECT time, latest_lap_time_ms AS \"Last Lap\" FROM session_history WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) AND latest_lap_time_ms IS NOT NULL ORDER BY time DESC LIMIT 1",
           "refId": "A"
         }
       ]

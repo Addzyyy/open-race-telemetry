@@ -92,7 +92,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT \n  fc.position AS \"Pos\",\n  p.name AS \"Driver\",\n  fc.grid_position AS \"Grid\",\n  fc.position - fc.grid_position AS \"Gain\",\n  fc.num_laps AS \"Laps\",\n  FLOOR(fc.best_lap_time_ms / 60000) || ':' || LPAD(FLOOR((fc.best_lap_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((fc.best_lap_time_ms % 1000)::text, 3, '0') AS \"Best Lap\",\n  fc.total_race_time AS \"Total Time\",\n  fc.num_pit_stops AS \"Pits\",\n  fc.penalties_time AS \"Pen (s)\",\n  fc.result_status AS \"Status\",\n  fc.tyre_stints_visual AS \"Stints\"\nFROM final_classification fc\nLEFT JOIN LATERAL (\n  SELECT name FROM participants\n  WHERE session_uid='$session' AND car_index=fc.car_index\n  ORDER BY time DESC LIMIT 1\n) p ON true\nWHERE fc.session_uid='$session'\nORDER BY fc.position ASC"
+          "rawSql": "SELECT \n  fc.position AS \"Pos\",\n  p.name AS \"Driver\",\n  fc.grid_position AS \"Grid\",\n  fc.position - fc.grid_position AS \"Gain\",\n  fc.num_laps AS \"Laps\",\n  fc.best_lap_time_ms AS \"Best Lap\",\n  fc.total_race_time AS \"Total Time\",\n  fc.num_pit_stops AS \"Pits\",\n  fc.penalties_time AS \"Pen (s)\",\n  fc.result_status AS \"Status\",\n  fc.tyre_stints_visual AS \"Stints\"\nFROM final_classification fc\nLEFT JOIN LATERAL (\n  SELECT name FROM participants\n  WHERE session_uid='$session' AND car_index=fc.car_index\n  ORDER BY time DESC LIMIT 1\n) p ON true\nWHERE fc.session_uid='$session'\nORDER BY fc.position ASC"
         }
       ],
       "options": {
@@ -107,6 +107,13 @@
           }
         },
         "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Best Lap" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
           {
             "matcher": { "id": "byName", "options": "Status" },
             "properties": [
@@ -207,23 +214,24 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT now() AS time, FLOOR(MIN(latest_lap_time_ms) / 60000) || ':' || LPAD(FLOOR((MIN(latest_lap_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MIN(latest_lap_time_ms) % 1000)::text, 3, '0') AS \"Best Lap\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0"
+          "rawSql": "SELECT now() AS time, MIN(latest_lap_time_ms) AS \"Best Lap\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0"
         }
       ],
       "options": {
         "graphMode": "none",
-        "textMode": "value",
+        "textMode": "auto",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": [],
+          "calcs": ["lastNotNull"],
           "fields": "",
-          "values": true
+          "values": false
         },
         "orientation": "auto"
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "clockms",
+          "decimals": 3,
           "color": { "mode": "fixed", "fixedColor": "#A020F0" },
           "mappings": [],
           "thresholds": {
@@ -247,23 +255,24 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT now() AS time, FLOOR(AVG(latest_lap_time_ms)::bigint / 60000) || ':' || LPAD(FLOOR((AVG(latest_lap_time_ms)::bigint % 60000) / 1000)::text, 2, '0') || '.' || LPAD((AVG(latest_lap_time_ms)::bigint % 1000)::text, 3, '0') AS \"Avg Lap\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_lap_valid = true"
+          "rawSql": "SELECT now() AS time, AVG(latest_lap_time_ms)::integer AS \"Avg Lap\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_lap_valid = true"
         }
       ],
       "options": {
         "graphMode": "none",
-        "textMode": "value",
+        "textMode": "auto",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": [],
+          "calcs": ["lastNotNull"],
           "fields": "",
-          "values": true
+          "values": false
         },
         "orientation": "auto"
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "clockms",
+          "decimals": 3,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -323,19 +332,6 @@
       "type": "table",
       "gridPos": { "x": 0, "y": 14, "w": 12, "h": 10 },
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "SELECT \n  ROW_NUMBER() OVER (ORDER BY sh.time ASC) AS \"Lap\",\n  FLOOR(sh.latest_sector1_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector1_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector1_time_ms % 1000)::text, 3, '0') AS \"S1\",\n  FLOOR(sh.latest_sector2_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector2_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector2_time_ms % 1000)::text, 3, '0') AS \"S2\",\n  FLOOR(sh.latest_sector3_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector3_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector3_time_ms % 1000)::text, 3, '0') AS \"S3\",\n  FLOOR(sh.latest_lap_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_lap_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_lap_time_ms % 1000)::text, 3, '0') AS \"Total\",\n  cs.visual_tyre_compound AS \"Tyre\",\n  cs.tyres_age_laps AS \"Age\",\n  sh.latest_lap_valid AS \"Valid\"\nFROM session_history sh\nLEFT JOIN LATERAL (\n  SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n  WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms IS NOT NULL\nORDER BY sh.time ASC"
-        }
-      ],
-      "options": {
-        "sortBy": [{ "displayName": "Lap", "desc": false }]
-      },
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -345,6 +341,34 @@
           }
         },
         "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "S1" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S2" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S3" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Total" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
           {
             "matcher": { "id": "byName", "options": "Tyre" },
             "properties": [
@@ -366,6 +390,19 @@
             ]
           }
         ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT \n  ROW_NUMBER() OVER (ORDER BY sh.time ASC) AS \"Lap\",\n  sh.latest_sector1_time_ms AS \"S1\",\n  sh.latest_sector2_time_ms AS \"S2\",\n  sh.latest_sector3_time_ms AS \"S3\",\n  sh.latest_lap_time_ms AS \"Total\",\n  cs.visual_tyre_compound AS \"Tyre\",\n  cs.tyres_age_laps AS \"Age\",\n  sh.latest_lap_valid AS \"Valid\"\nFROM session_history sh\nLEFT JOIN LATERAL (\n  SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n  WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms IS NOT NULL\nORDER BY sh.time ASC"
+        }
+      ],
+      "options": {
+        "sortBy": [{ "displayName": "Lap", "desc": false }]
       }
     },
     {
@@ -381,7 +418,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT \n  ROW_NUMBER() OVER (ORDER BY sh.time ASC) AS \"Lap\",\n  sh.latest_lap_time_ms / 1000.0 AS \"Lap Time\"\nFROM session_history sh\nWHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\nORDER BY sh.time ASC"
+          "rawSql": "SELECT \n  ROW_NUMBER() OVER (ORDER BY sh.time ASC) AS \"Lap\",\n  sh.latest_lap_time_ms AS \"Lap Time\"\nFROM session_history sh\nWHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\nORDER BY sh.time ASC"
         }
       ],
       "options": {
@@ -396,7 +433,8 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "clockms",
+          "decimals": 3,
           "color": { "mode": "fixed", "fixedColor": "#A020F0" },
           "mappings": [],
           "thresholds": {
@@ -464,19 +502,6 @@
       "type": "table",
       "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "rawQuery": true,
-          "editorMode": "code",
-          "format": "table",
-          "rawSql": "WITH stint_data AS (\n  SELECT sh.time, sh.latest_lap_time_ms, cs.visual_tyre_compound, cs.tyres_age_laps,\n    LAG(cs.visual_tyre_compound) OVER (ORDER BY sh.time) AS prev_compound,\n    LAG(cs.tyres_age_laps) OVER (ORDER BY sh.time) AS prev_age\n  FROM session_history sh\n  LEFT JOIN LATERAL (\n    SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n),\nstints AS (\n  SELECT *,\n    SUM(CASE WHEN prev_compound IS NULL OR visual_tyre_compound != prev_compound OR tyres_age_laps < prev_age THEN 1 ELSE 0 END) \n      OVER (ORDER BY time) AS stint_num\n  FROM stint_data\n)\nSELECT \n  stint_num AS \"Stint\",\n  visual_tyre_compound AS \"Compound\",\n  COUNT(*) AS \"Laps\",\n  FLOOR(MIN(latest_lap_time_ms) / 60000) || ':' || LPAD(FLOOR((MIN(latest_lap_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MIN(latest_lap_time_ms) % 1000)::text, 3, '0') AS \"Best\",\n  FLOOR(MAX(latest_lap_time_ms) / 60000) || ':' || LPAD(FLOOR((MAX(latest_lap_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MAX(latest_lap_time_ms) % 1000)::text, 3, '0') AS \"Worst\",\n  FLOOR(AVG(latest_lap_time_ms)::bigint / 60000) || ':' || LPAD(FLOOR((AVG(latest_lap_time_ms)::bigint % 60000) / 1000)::text, 2, '0') || '.' || LPAD((AVG(latest_lap_time_ms)::bigint % 1000)::text, 3, '0') AS \"Avg\"\nFROM stints\nGROUP BY stint_num, visual_tyre_compound\nORDER BY stint_num"
-        }
-      ],
-      "options": {
-        "sortBy": [{ "displayName": "Stint", "desc": false }]
-      },
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -486,6 +511,27 @@
           }
         },
         "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Best" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Worst" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Avg" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
           {
             "matcher": { "id": "byName", "options": "Compound" },
             "properties": [
@@ -507,6 +553,19 @@
             ]
           }
         ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH stint_data AS (\n  SELECT sh.time, sh.latest_lap_time_ms, cs.visual_tyre_compound, cs.tyres_age_laps,\n    LAG(cs.visual_tyre_compound) OVER (ORDER BY sh.time) AS prev_compound,\n    LAG(cs.tyres_age_laps) OVER (ORDER BY sh.time) AS prev_age\n  FROM session_history sh\n  LEFT JOIN LATERAL (\n    SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n),\nstints AS (\n  SELECT *,\n    SUM(CASE WHEN prev_compound IS NULL OR visual_tyre_compound != prev_compound OR tyres_age_laps < prev_age THEN 1 ELSE 0 END) \n      OVER (ORDER BY time) AS stint_num\n  FROM stint_data\n)\nSELECT \n  stint_num AS \"Stint\",\n  visual_tyre_compound AS \"Compound\",\n  COUNT(*) AS \"Laps\",\n  MIN(latest_lap_time_ms) AS \"Best\",\n  MAX(latest_lap_time_ms) AS \"Worst\",\n  AVG(latest_lap_time_ms)::integer AS \"Avg\"\nFROM stints\nGROUP BY stint_num, visual_tyre_compound\nORDER BY stint_num"
+        }
+      ],
+      "options": {
+        "sortBy": [{ "displayName": "Stint", "desc": false }]
       }
     }
   ]

@@ -417,6 +417,41 @@
         },
         "overrides": [
           {
+            "matcher": { "id": "byName", "options": "Last" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Best" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S1" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S2" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S3" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
             "matcher": { "id": "byName", "options": "Tyre" },
             "properties": [
               {
@@ -442,7 +477,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ld.car_position AS \"Pos\",\n  p.name AS \"Driver\",\n  p.race_number AS \"#\",\n  ld.current_lap_num AS \"Lap\",\n  FLOOR(sh.latest_lap_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_lap_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_lap_time_ms % 1000)::text, 3, '0') AS \"Last\",\n  CASE WHEN sh.best_lap_time_lap_num > 0\n    THEN FLOOR((SELECT lh.latest_lap_time_ms FROM session_history lh\n          WHERE lh.session_uid = '$session' AND lh.car_index = ld.car_index\n          ORDER BY lh.latest_lap_time_ms ASC NULLS LAST LIMIT 1) / 60000) || ':'\n      || LPAD(FLOOR(((SELECT lh.latest_lap_time_ms FROM session_history lh\n          WHERE lh.session_uid = '$session' AND lh.car_index = ld.car_index\n          ORDER BY lh.latest_lap_time_ms ASC NULLS LAST LIMIT 1) % 60000) / 1000)::text, 2, '0') || '.'\n      || LPAD(((SELECT lh.latest_lap_time_ms FROM session_history lh\n          WHERE lh.session_uid = '$session' AND lh.car_index = ld.car_index\n          ORDER BY lh.latest_lap_time_ms ASC NULLS LAST LIMIT 1) % 1000)::text, 3, '0')\n    ELSE NULL END AS \"Best\",\n  FLOOR(sh.latest_sector1_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector1_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector1_time_ms % 1000)::text, 3, '0') AS \"S1\",\n  FLOOR(sh.latest_sector2_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector2_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector2_time_ms % 1000)::text, 3, '0') AS \"S2\",\n  FLOOR(sh.latest_sector3_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector3_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector3_time_ms % 1000)::text, 3, '0') AS \"S3\",\n  cs.visual_tyre_compound AS \"Tyre\",\n  cs.tyres_age_laps AS \"Age\",\n  ld.num_pit_stops AS \"Pits\"\nFROM lap_data ld\nJOIN LATERAL (\n  SELECT name, race_number FROM participants\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n  ORDER BY time DESC LIMIT 1\n) p ON true\nJOIN LATERAL (\n  SELECT latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms,\n         latest_sector3_time_ms, best_lap_time_lap_num\n  FROM session_history\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n  ORDER BY time DESC LIMIT 1\n) sh ON true\nJOIN LATERAL (\n  SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n    AND visual_tyre_compound IS NOT NULL\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE ld.session_uid = '$session'\n  AND ld.time = (SELECT MAX(time) FROM lap_data WHERE session_uid = '$session' AND car_index = ld.car_index)\nORDER BY ld.car_position ASC"
+          "rawSql": "SELECT\n  ld.car_position AS \"Pos\",\n  p.name AS \"Driver\",\n  p.race_number AS \"#\",\n  ld.current_lap_num AS \"Lap\",\n  sh.latest_lap_time_ms AS \"Last\",\n  CASE WHEN sh.best_lap_time_lap_num > 0\n    THEN (SELECT lh.latest_lap_time_ms FROM session_history lh\n          WHERE lh.session_uid = '$session' AND lh.car_index = ld.car_index\n          ORDER BY lh.latest_lap_time_ms ASC NULLS LAST LIMIT 1)\n    ELSE NULL END AS \"Best\",\n  sh.latest_sector1_time_ms AS \"S1\",\n  sh.latest_sector2_time_ms AS \"S2\",\n  sh.latest_sector3_time_ms AS \"S3\",\n  cs.visual_tyre_compound AS \"Tyre\",\n  cs.tyres_age_laps AS \"Age\",\n  ld.num_pit_stops AS \"Pits\"\nFROM lap_data ld\nJOIN LATERAL (\n  SELECT name, race_number FROM participants\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n  ORDER BY time DESC LIMIT 1\n) p ON true\nJOIN LATERAL (\n  SELECT latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms,\n         latest_sector3_time_ms, best_lap_time_lap_num\n  FROM session_history\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n  ORDER BY time DESC LIMIT 1\n) sh ON true\nJOIN LATERAL (\n  SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n    AND visual_tyre_compound IS NOT NULL\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE ld.session_uid = '$session'\n  AND ld.time = (SELECT MAX(time) FROM lap_data WHERE session_uid = '$session' AND car_index = ld.car_index)\nORDER BY ld.car_position ASC"
         }
       ]
     },
@@ -464,7 +499,36 @@
             "steps": [{ "color": "green", "value": null }]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "S1" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S2" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S3" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Total" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          }
+        ]
       },
       "targets": [
         {
@@ -473,7 +537,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  ROW_NUMBER() OVER (ORDER BY sh.time DESC) AS \"Lap\",\n  FLOOR(sh.latest_sector1_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector1_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector1_time_ms % 1000)::text, 3, '0') AS \"S1\",\n  FLOOR(sh.latest_sector2_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector2_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector2_time_ms % 1000)::text, 3, '0') AS \"S2\",\n  FLOOR(sh.latest_sector3_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_sector3_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_sector3_time_ms % 1000)::text, 3, '0') AS \"S3\",\n  FLOOR(sh.latest_lap_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_lap_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_lap_time_ms % 1000)::text, 3, '0') AS \"Total\",\n  sh.latest_lap_valid AS \"Valid\"\nFROM session_history sh\nWHERE sh.session_uid = '$session'\n  AND sh.car_index = $car_index\n  AND sh.latest_lap_time_ms IS NOT NULL\n  AND $__timeFilter(sh.time)\nORDER BY sh.time DESC\nLIMIT 10"
+          "rawSql": "SELECT\n  ROW_NUMBER() OVER (ORDER BY sh.time DESC) AS \"Lap\",\n  sh.latest_sector1_time_ms AS \"S1\",\n  sh.latest_sector2_time_ms AS \"S2\",\n  sh.latest_sector3_time_ms AS \"S3\",\n  sh.latest_lap_time_ms AS \"Total\",\n  sh.latest_lap_valid AS \"Valid\"\nFROM session_history sh\nWHERE sh.session_uid = '$session'\n  AND sh.car_index = $car_index\n  AND sh.latest_lap_time_ms IS NOT NULL\n  AND $__timeFilter(sh.time)\nORDER BY sh.time DESC\nLIMIT 10"
         }
       ]
     },
@@ -544,7 +608,7 @@
             "axisPlacement": "auto"
           },
           "color": { "mode": "fixed", "fixedColor": "#FFD700" },
-          "unit": "none",
+          "unit": "clockms",
           "decimals": 3,
           "mappings": [],
           "thresholds": {
@@ -561,7 +625,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT sh.time, sh.latest_lap_time_ms / 1000.0 AS \"Lap Time\" FROM session_history sh WHERE sh.session_uid = '$session' AND sh.car_index = $car_index AND sh.latest_lap_time_ms IS NOT NULL AND $__timeFilter(sh.time) ORDER BY sh.time"
+          "rawSql": "SELECT sh.time, sh.latest_lap_time_ms AS \"Lap Time\" FROM session_history sh WHERE sh.session_uid = '$session' AND sh.car_index = $car_index AND sh.latest_lap_time_ms IS NOT NULL AND $__timeFilter(sh.time) ORDER BY sh.time"
         }
       ]
     }

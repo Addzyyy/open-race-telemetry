@@ -446,7 +446,7 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "clockms",
           "decimals": 3,
           "color": {
             "fixedColor": "#FFFFFF",
@@ -491,7 +491,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT time, latest_lap_time_ms / 1000.0 AS \"Lap Time\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) ORDER BY time",
+          "rawSql": "SELECT time, latest_lap_time_ms AS \"Lap Time\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) ORDER BY time",
           "refId": "A"
         }
       ]

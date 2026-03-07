@@ -400,7 +400,7 @@
         {
           "refId": "A",
           "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "rawSql": "SELECT\n  ld.car_position AS \"Pos\",\n  p.name AS \"Driver\",\n  FLOOR(sh.latest_lap_time_ms / 60000) || ':' || LPAD(FLOOR((sh.latest_lap_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((sh.latest_lap_time_ms % 1000)::text, 3, '0') AS \"Last\",\n  cs.visual_tyre_compound AS \"Tyre\",\n  cs.tyres_age_laps AS \"Age\",\n  ld.num_pit_stops AS \"Pits\"\nFROM lap_data ld\nJOIN LATERAL (\n  SELECT name FROM participants\n  WHERE session_uid='$session' AND car_index=ld.car_index\n  ORDER BY time DESC LIMIT 1\n) p ON true\nJOIN LATERAL (\n  SELECT latest_lap_time_ms FROM session_history\n  WHERE session_uid='$session' AND car_index=ld.car_index\n  ORDER BY time DESC LIMIT 1\n) sh ON true\nJOIN LATERAL (\n  SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n  WHERE session_uid='$session' AND car_index=ld.car_index AND visual_tyre_compound IS NOT NULL\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE ld.session_uid='$session'\n  AND ld.time = (SELECT MAX(time) FROM lap_data WHERE session_uid='$session' AND car_index=ld.car_index)\nORDER BY ld.car_position ASC",
+          "rawSql": "SELECT\n  ld.car_position AS \"Pos\",\n  p.name AS \"Driver\",\n  sh.latest_lap_time_ms AS \"Last\",\n  cs.visual_tyre_compound AS \"Tyre\",\n  cs.tyres_age_laps AS \"Age\",\n  ld.num_pit_stops AS \"Pits\"\nFROM lap_data ld\nJOIN LATERAL (\n  SELECT name FROM participants\n  WHERE session_uid='$session' AND car_index=ld.car_index\n  ORDER BY time DESC LIMIT 1\n) p ON true\nJOIN LATERAL (\n  SELECT latest_lap_time_ms FROM session_history\n  WHERE session_uid='$session' AND car_index=ld.car_index\n  ORDER BY time DESC LIMIT 1\n) sh ON true\nJOIN LATERAL (\n  SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n  WHERE session_uid='$session' AND car_index=ld.car_index AND visual_tyre_compound IS NOT NULL\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE ld.session_uid='$session'\n  AND ld.time = (SELECT MAX(time) FROM lap_data WHERE session_uid='$session' AND car_index=ld.car_index)\nORDER BY ld.car_position ASC",
           "rawQuery": true,
           "editorMode": "code",
           "format": "table"
@@ -409,6 +409,13 @@
       "fieldConfig": {
         "defaults": {},
         "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Last" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
           {
             "matcher": { "id": "byName", "options": "Tyre" },
             "properties": [
@@ -554,7 +561,7 @@
         {
           "refId": "A",
           "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "rawSql": "SELECT time, FLOOR(latest_lap_time_ms / 60000) || ':' || LPAD(FLOOR((latest_lap_time_ms % 60000) / 1000)::text, 2, '0') || '.' || LPAD((latest_lap_time_ms % 1000)::text, 3, '0') AS \"Last Lap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) AND latest_lap_time_ms IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawSql": "SELECT time, latest_lap_time_ms AS \"Last Lap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) AND latest_lap_time_ms IS NOT NULL ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
           "format": "table"
@@ -562,18 +569,19 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "none"
+          "unit": "clockms",
+          "decimals": 3
         },
         "overrides": []
       },
       "options": {
         "reduceOptions": {
-          "calcs": [],
+          "calcs": ["lastNotNull"],
           "fields": "",
-          "values": true
+          "values": false
         },
         "graphMode": "none",
-        "textMode": "value",
+        "textMode": "auto",
         "colorMode": "value"
       }
     },
@@ -789,7 +797,7 @@
         {
           "refId": "A",
           "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "rawSql": "SELECT time, FLOOR(MIN(latest_lap_time_ms) / 60000) || ':' || LPAD(FLOOR((MIN(latest_lap_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MIN(latest_lap_time_ms) % 1000)::text, 3, '0') AS \"Best\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) GROUP BY time ORDER BY MIN(latest_lap_time_ms) ASC LIMIT 1",
+          "rawSql": "SELECT time, MIN(latest_lap_time_ms) AS \"Best\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) GROUP BY time ORDER BY MIN(latest_lap_time_ms) ASC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
           "format": "table"
@@ -797,7 +805,8 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "clockms",
+          "decimals": 3,
           "color": {
             "mode": "fixed",
             "fixedColor": "#A020F0"
@@ -807,12 +816,12 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": [],
+          "calcs": ["lastNotNull"],
           "fields": "",
-          "values": true
+          "values": false
         },
         "graphMode": "none",
-        "textMode": "value",
+        "textMode": "auto",
         "colorMode": "value"
       }
     },
