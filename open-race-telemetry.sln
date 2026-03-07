@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryIngester.Tests", "src\TelemetryIngester.Tests\TelemetryIngester.Tests.csproj", "{98264714-98E0-F57F-D1D9-96EFF1EA12F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryIngester", "src\TelemetryIngester\TelemetryIngester.csproj", "{9675D228-E2F6-607B-F9D0-774C0C4CAEB6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{98264714-98E0-F57F-D1D9-96EFF1EA12F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98264714-98E0-F57F-D1D9-96EFF1EA12F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98264714-98E0-F57F-D1D9-96EFF1EA12F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98264714-98E0-F57F-D1D9-96EFF1EA12F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9675D228-E2F6-607B-F9D0-774C0C4CAEB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9675D228-E2F6-607B-F9D0-774C0C4CAEB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9675D228-E2F6-607B-F9D0-774C0C4CAEB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9675D228-E2F6-607B-F9D0-774C0C4CAEB6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{98264714-98E0-F57F-D1D9-96EFF1EA12F8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{9675D228-E2F6-607B-F9D0-774C0C4CAEB6} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AFCA8050-64FF-4B7E-A28D-2F7D6BDC1682}
+	EndGlobalSection
+EndGlobal

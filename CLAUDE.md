@@ -113,6 +113,18 @@ All config via `appsettings.json` / `appsettings.Development.json`. Sections:
 - **Integration tests** with Testcontainers for `TimescaleWriter` and end-to-end (UDP → DB)
 - Do NOT test F1Game.UDP's decoding — that's the library's responsibility
 
+## Git Workflow
+
+For every new feature or piece of work:
+
+1. Create a feature branch from `main` with a descriptive name: `git checkout -b feat/short-description`
+2. Commit changes to the feature branch as work progresses
+3. When the work is complete, open a pull request using the `gh` CLI:
+   ```bash
+   gh pr create --base main --title "Short description" --body "Summary of changes"
+   ```
+4. Do NOT merge the PR — leave it for the user to review and merge
+
 ## Do NOT
 
 - Write a custom UDP packet parser or binary deserialiser
