@@ -31,6 +31,55 @@ internal static class KafkaMessageSerializer
         ["eventType", "sessionUid", "timestamp", "frameId", "carIndex"];
 
     /// <summary>
+    /// Deserialises a JSON envelope back into the correct <see cref="TelemetryEvent"/> subtype.
+    /// Reads the <c>eventType</c> field to determine the concrete type, then merges the
+    /// top-level base fields with the nested <c>data</c> object into a flat JSON object
+    /// for deserialization.
+    /// </summary>
+    internal static TelemetryEvent Deserialize(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        var eventType = root.GetProperty("eventType").GetString();
+
+        // Determine the target concrete type from the eventType discriminator.
+        var targetType = eventType switch
+        {
+            "CarTelemetry" => typeof(CarTelemetryEvent),
+            "LapData" => typeof(LapDataEvent),
+            "CarStatus" => typeof(CarStatusEvent),
+            _ => throw new JsonException($"Unknown event type: {eventType}"),
+        };
+
+        // Merge base fields + data fields into a single flat JSON object.
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+
+        writer.WriteStartObject();
+
+        // Write all top-level properties except "data" (they are the base fields).
+        foreach (var prop in root.EnumerateObject())
+        {
+            if (prop.Name != "data")
+                prop.WriteTo(writer);
+        }
+
+        // Flatten the nested "data" object into the top level.
+        if (root.TryGetProperty("data", out var data))
+        {
+            foreach (var prop in data.EnumerateObject())
+                prop.WriteTo(writer);
+        }
+
+        writer.WriteEndObject();
+        writer.Flush();
+
+        var flatJson = Encoding.UTF8.GetString(ms.ToArray());
+        return (TelemetryEvent)JsonSerializer.Deserialize(flatJson, targetType, JsonOptions)!;
+    }
+
+    /// <summary>
     /// Serialises <paramref name="event"/> to the envelope JSON format described above.
     /// </summary>
     internal static string Serialize(TelemetryEvent @event)

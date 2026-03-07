@@ -131,4 +131,106 @@ public sealed class KafkaSerializationTests
         Assert.False(data.TryGetProperty("carIndex", out _));
         Assert.False(data.TryGetProperty("timestamp", out _));
     }
+
+    [Fact]
+    public void Deserialize_CarTelemetryEvent_RoundTrip()
+    {
+        var original = MakeCarTelemetryEvent();
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<CarTelemetryEvent>(deserialized);
+        Assert.Equal(original.EventType, result.EventType);
+        Assert.Equal(original.SessionUid, result.SessionUid);
+        Assert.Equal(original.FrameId, result.FrameId);
+        Assert.Equal(original.CarIndex, result.CarIndex);
+        Assert.Equal(original.Speed, result.Speed);
+        Assert.Equal(original.Throttle, result.Throttle, precision: 5);
+        Assert.Equal(original.Steer, result.Steer, precision: 5);
+        Assert.Equal(original.Gear, result.Gear);
+        Assert.True(result.Drs);
+        Assert.Equal(original.BrakesTempRl, result.BrakesTempRl);
+        Assert.Equal(original.TyresInnerTempFr, result.TyresInnerTempFr);
+    }
+
+    [Fact]
+    public void Deserialize_LapDataEvent_RoundTrip()
+    {
+        var original = new LapDataEvent
+        {
+            EventType = "LapData",
+            SessionUid = "55555",
+            Timestamp = new DateTimeOffset(2025, 6, 15, 14, 30, 0, TimeSpan.Zero),
+            FrameId = 100u,
+            CarIndex = 0,
+            CurrentLapTimeMs = 85432,
+            CurrentLapNum = 5,
+            Sector1TimeMs = 28000,
+            Sector2TimeMs = 31000,
+            Sector3TimeMs = null,
+            LapDistance = 2345.6f,
+            TotalDistance = 15000.0f,
+            CarPosition = 3,
+            CurrentLapInvalid = false,
+            Penalties = 0,
+            NumPitStops = 1,
+            PitStatus = 0,
+            Sector = 2,
+            ResultStatus = 2,
+        };
+
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<LapDataEvent>(deserialized);
+        Assert.Equal(original.CurrentLapTimeMs, result.CurrentLapTimeMs);
+        Assert.Equal(original.Sector1TimeMs, result.Sector1TimeMs);
+        Assert.Null(result.Sector3TimeMs);
+        Assert.Equal(original.LapDistance, result.LapDistance, precision: 1);
+        Assert.Equal(original.CarPosition, result.CarPosition);
+    }
+
+    [Fact]
+    public void Deserialize_CarStatusEvent_WithNulls_RoundTrip()
+    {
+        var original = new CarStatusEvent
+        {
+            EventType = "CarStatus",
+            SessionUid = "111",
+            Timestamp = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            FrameId = 1u,
+            CarIndex = 0,
+            TyreWearRl = 0.15f,
+            TyreWearRr = null,
+            TyreWearFl = null,
+            TyreWearFr = null,
+            ActualTyreCompound = null,
+            VisualTyreCompound = null,
+            TyresAgeLaps = null,
+            FuelInTank = null,
+            FuelCapacity = null,
+            FuelRemainingLaps = null,
+            ErsStoreEnergy = null,
+            ErsDeployMode = null,
+            ErsHarvestedLapMguk = null,
+            ErsHarvestedLapMguh = null,
+            ErsDeployedLap = null,
+        };
+
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<CarStatusEvent>(deserialized);
+        Assert.Equal(0.15f, result.TyreWearRl!.Value, precision: 5);
+        Assert.Null(result.TyreWearRr);
+        Assert.Null(result.ActualTyreCompound);
+        Assert.Null(result.ErsDeployMode);
+    }
+
+    [Fact]
+    public void Deserialize_UnknownEventType_ThrowsJsonException()
+    {
+        var json = """{"eventType":"Unknown","sessionUid":"1","timestamp":"2025-01-01T00:00:00+00:00","frameId":1,"carIndex":0,"data":{}}""";
+        Assert.Throws<JsonException>(() => KafkaMessageSerializer.Deserialize(json));
+    }
 }
