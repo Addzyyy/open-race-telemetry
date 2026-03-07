@@ -16,7 +16,7 @@ public sealed class KafkaConsumerService(
     ITimescaleWriter writer,
     ILogger<KafkaConsumerService> logger) : BackgroundService
 {
-    private static readonly string[] Topics = ["car-telemetry", "lap-data", "car-status"];
+    private static readonly string[] Topics = ["car-telemetry", "lap-data", "car-status", "participants", "session", "session-history"];
 
     private readonly KafkaOptions _kafkaOptions = kafkaOptions.Value;
     private readonly IngesterOptions _ingesterOptions = ingesterOptions.Value;

@@ -31,10 +31,13 @@ public sealed class KafkaProducer : IKafkaProducer
         // Map event type to Kafka topic name.
         var topic = @event.EventType switch
         {
-            "CarTelemetry" => "car-telemetry",
-            "LapData"      => "lap-data",
-            "CarStatus"    => "car-status",
-            _              => null,
+            "CarTelemetry"   => "car-telemetry",
+            "LapData"        => "lap-data",
+            "CarStatus"      => "car-status",
+            "Participant"    => "participants",
+            "Session"        => "session",
+            "SessionHistory" => "session-history",
+            _                => null,
         };
 
         if (topic is null)
