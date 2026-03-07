@@ -18,8 +18,8 @@ public sealed class KafkaConsumerService(
 {
     private static readonly string[] Topics = ["car-telemetry", "lap-data", "car-status", "participants", "session", "session-history"];
 
-    private static readonly TimeSpan InitialBackoff = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan MaxBackoff = TimeSpan.FromSeconds(30);
+    internal static readonly TimeSpan InitialBackoff = TimeSpan.FromSeconds(1);
+    internal static readonly TimeSpan MaxBackoff = TimeSpan.FromSeconds(30);
 
     private readonly KafkaOptions _kafkaOptions = kafkaOptions.Value;
     private readonly IngesterOptions _ingesterOptions = ingesterOptions.Value;
@@ -51,7 +51,7 @@ public sealed class KafkaConsumerService(
             }
             catch (Exception ex)
             {
-                logger.LogInformation(ex, "Kafka consumer disconnected, reconnecting in {Delay}s", connectBackoff.TotalSeconds);
+                logger.LogWarning(ex, "Kafka consumer disconnected, reconnecting in {Delay}s", connectBackoff.TotalSeconds);
             }
             finally
             {
@@ -165,6 +165,6 @@ public sealed class KafkaConsumerService(
         }
     }
 
-    private static TimeSpan NextBackoff(TimeSpan current) =>
+    internal static TimeSpan NextBackoff(TimeSpan current) =>
         current >= MaxBackoff ? MaxBackoff : TimeSpan.FromTicks(Math.Min(current.Ticks * 2, MaxBackoff.Ticks));
 }
