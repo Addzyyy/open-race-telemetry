@@ -193,8 +193,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
-          "decimals": 3,
+          "unit": "none",
           "color": { "mode": "fixed", "fixedColor": "#A020F0" },
           "mappings": [],
           "thresholds": {
@@ -211,7 +210,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT time, MIN(latest_lap_time_ms) / 1000.0 AS \"Best Lap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) GROUP BY time ORDER BY \"Best Lap\" ASC LIMIT 1"
+          "rawSql": "SELECT time, FLOOR(MIN(latest_lap_time_ms) / 60000) || ':' || LPAD(FLOOR((MIN(latest_lap_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MIN(latest_lap_time_ms) % 1000)::text, 3, '0') AS \"Best Lap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) GROUP BY time ORDER BY MIN(latest_lap_time_ms) ASC LIMIT 1"
         }
       ]
     },
@@ -234,8 +233,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
-          "decimals": 3,
+          "unit": "none",
           "color": { "mode": "fixed", "fixedColor": "#00FF00" },
           "mappings": [],
           "thresholds": {
@@ -252,7 +250,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT now() AS time,\n  (MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) / 1000.0 AS \"Theoretical\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
+          "rawSql": "SELECT now() AS time,\n  FLOOR((MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) / 60000) || ':' || LPAD(FLOOR(((MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) % 60000) / 1000)::text, 2, '0') || '.' || LPAD(((MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) % 1000)::text, 3, '0') AS \"Theoretical\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
         }
       ]
     },
@@ -275,7 +273,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
+          "unit": "none",
           "decimals": 3,
           "mappings": [],
           "thresholds": {
@@ -375,7 +373,7 @@
             "axisPlacement": "auto",
             "scaleDistribution": { "type": "linear" }
           },
-          "unit": "s",
+          "unit": "none",
           "decimals": 3,
           "mappings": [],
           "thresholds": {
@@ -434,27 +432,6 @@
                 ]
               }
             ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Best" },
-            "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Avg" },
-            "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Worst" },
-            "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
-            ]
           }
         ]
       },
@@ -465,7 +442,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "WITH laps AS (\n  SELECT sh.latest_lap_time_ms, cs.visual_tyre_compound\n  FROM session_history sh\n  JOIN LATERAL (\n    SELECT visual_tyre_compound FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n)\nSELECT visual_tyre_compound AS \"Compound\",\n  COUNT(*) AS \"Laps\",\n  MIN(latest_lap_time_ms) / 1000.0 AS \"Best\",\n  AVG(latest_lap_time_ms) / 1000.0 AS \"Avg\",\n  MAX(latest_lap_time_ms) / 1000.0 AS \"Worst\"\nFROM laps\nGROUP BY visual_tyre_compound\nORDER BY \"Best\" ASC"
+          "rawSql": "WITH laps AS (\n  SELECT sh.latest_lap_time_ms, cs.visual_tyre_compound\n  FROM session_history sh\n  JOIN LATERAL (\n    SELECT visual_tyre_compound FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n)\nSELECT visual_tyre_compound AS \"Compound\",\n  COUNT(*) AS \"Laps\",\n  FLOOR(MIN(latest_lap_time_ms) / 60000) || ':' || LPAD(FLOOR((MIN(latest_lap_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MIN(latest_lap_time_ms) % 1000)::text, 3, '0') AS \"Best\",\n  FLOOR(AVG(latest_lap_time_ms)::bigint / 60000) || ':' || LPAD(FLOOR((AVG(latest_lap_time_ms)::bigint % 60000) / 1000)::text, 2, '0') || '.' || LPAD((AVG(latest_lap_time_ms)::bigint % 1000)::text, 3, '0') AS \"Avg\",\n  FLOOR(MAX(latest_lap_time_ms) / 60000) || ':' || LPAD(FLOOR((MAX(latest_lap_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MAX(latest_lap_time_ms) % 1000)::text, 3, '0') AS \"Worst\"\nFROM laps\nGROUP BY visual_tyre_compound\nORDER BY MIN(latest_lap_time_ms) ASC"
         }
       ]
     },
@@ -619,8 +596,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
-          "decimals": 3,
+          "unit": "none",
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -636,7 +612,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  MIN(latest_sector1_time_ms) / 1000.0 AS \"Best S1\",\n  MIN(latest_sector2_time_ms) / 1000.0 AS \"Best S2\",\n  MIN(latest_sector3_time_ms) / 1000.0 AS \"Best S3\",\n  (MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) / 1000.0 AS \"Theoretical\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
+          "rawSql": "SELECT\n  FLOOR(MIN(latest_sector1_time_ms) / 60000) || ':' || LPAD(FLOOR((MIN(latest_sector1_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MIN(latest_sector1_time_ms) % 1000)::text, 3, '0') AS \"Best S1\",\n  FLOOR(MIN(latest_sector2_time_ms) / 60000) || ':' || LPAD(FLOOR((MIN(latest_sector2_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MIN(latest_sector2_time_ms) % 1000)::text, 3, '0') AS \"Best S2\",\n  FLOOR(MIN(latest_sector3_time_ms) / 60000) || ':' || LPAD(FLOOR((MIN(latest_sector3_time_ms) % 60000) / 1000)::text, 2, '0') || '.' || LPAD((MIN(latest_sector3_time_ms) % 1000)::text, 3, '0') AS \"Best S3\",\n  FLOOR((MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) / 60000) || ':' || LPAD(FLOOR(((MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) % 60000) / 1000)::text, 2, '0') || '.' || LPAD(((MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) % 1000)::text, 3, '0') AS \"Theoretical\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
         }
       ]
     },
@@ -662,7 +638,7 @@
             "axisPlacement": "auto",
             "scaleDistribution": { "type": "linear" }
           },
-          "unit": "s",
+          "unit": "none",
           "decimals": 3,
           "mappings": [],
           "thresholds": {

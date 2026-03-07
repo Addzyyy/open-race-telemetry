@@ -425,7 +425,7 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
+          "unit": "none",
           "color": {
             "mode": "palette-classic"
           },
@@ -478,7 +478,7 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
+          "unit": "none",
           "decimals": 3,
           "color": {
             "fixedColor": "#FFFFFF",
