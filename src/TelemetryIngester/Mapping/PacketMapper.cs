@@ -57,6 +57,13 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             return events;
         }
 
+        if (packet.TryGetMotionDataPacket(out var motionData))
+        {
+            foreach (var carIndex in CarIndices(header))
+                events.Add(MapCarMotionData(motionData.CarMotionData[carIndex], header, carIndex, now));
+            return events;
+        }
+
         if (packet.TryGetParticipantsDataPacket(out var participants))
         {
             // Always emit all active cars — participant names are session metadata.
@@ -81,6 +88,15 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             return events;
         }
 
+        if (packet.TryGetFinalClassificationDataPacket(out var classification))
+        {
+            // Always emit all cars — race results are session-wide data.
+            var count = Math.Min(classification.NumCars, (byte)22);
+            for (byte i = 0; i < count; i++)
+                events.Add(MapFinalClassificationData(classification.ClassificationData[i], header, i, now));
+            return events;
+        }
+
         return events;
     }
 
@@ -101,6 +117,21 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
     // ── Internal mapping methods ───────────────────────────────────────────────
     // Marked internal so unit tests can call them directly via InternalsVisibleTo,
     // without needing to construct a full UnionPacket.
+
+    /// <summary>Maps a single car's motion data struct to a <see cref="CarMotionEvent"/>.</summary>
+    internal CarMotionEvent MapCarMotionData(
+        CarMotionData data, PacketHeader header, byte carIndex, DateTimeOffset timestamp) =>
+        new()
+        {
+            EventType = "CarMotion",
+            SessionUid = header.SessionUID.ToString(),
+            Timestamp = timestamp,
+            FrameId = header.FrameIdentifier,
+            CarIndex = carIndex,
+            GForceLateral = data.GForceLateral,
+            GForceLongitudinal = data.GForceLongitudinal,
+            GForceVertical = data.GForceVertical,
+        };
 
     /// <summary>Maps a single car's telemetry struct to a <see cref="CarTelemetryEvent"/>.</summary>
     internal CarTelemetryEvent MapCarTelemetryData(
@@ -381,6 +412,44 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             hash.Add(s.RainPercentage);
         }
         return hash.ToHashCode();
+    }
+
+    /// <summary>Maps a single car's final classification data to a <see cref="FinalClassificationEvent"/>.</summary>
+    internal FinalClassificationEvent MapFinalClassificationData(
+        FinalClassificationData data, PacketHeader header, byte carIndex, DateTimeOffset timestamp)
+    {
+        // Convert tyre stint arrays to comma-separated strings for storage.
+        var numStints = Math.Min(data.NumTyreStints, (byte)8);
+        var visualParts = new string[numStints];
+        var endLapParts = new string[numStints];
+        for (int i = 0; i < numStints; i++)
+        {
+            visualParts[i] = ((int)data.TyreStintsVisual[i]).ToString();
+            endLapParts[i] = data.TyreStintsEndLaps[i].ToString();
+        }
+
+        return new()
+        {
+            EventType = "FinalClassification",
+            SessionUid = header.SessionUID.ToString(),
+            Timestamp = timestamp,
+            FrameId = header.FrameIdentifier,
+            CarIndex = carIndex,
+            Position = data.Position,
+            NumLaps = data.NumLaps,
+            GridPosition = data.GridPosition,
+            Points = data.Points,
+            NumPitStops = data.NumPitStops,
+            ResultStatus = (byte)data.ResultStatus,
+            ResultReason = (byte)data.ResultReason,
+            BestLapTimeMs = data.BestLapTimeInMS,
+            TotalRaceTime = data.TotalRaceTime,
+            PenaltiesTime = data.PenaltiesTime,
+            NumPenalties = data.NumPenalties,
+            NumTyreStints = data.NumTyreStints,
+            TyreStintsVisual = string.Join(",", visualParts),
+            TyreStintsEndLaps = string.Join(",", endLapParts),
+        };
     }
 
     /// <summary>
