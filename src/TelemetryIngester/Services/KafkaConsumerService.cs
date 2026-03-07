@@ -37,7 +37,7 @@ public sealed class KafkaConsumerService(
         logger.LogInformation("Kafka consumer started, subscribed to {Topics}", string.Join(", ", Topics));
 
         var buffer = new List<TelemetryEvent>();
-        var lastConsumeResults = new List<ConsumeResult<string, string>>();
+        var offsets = new Dictionary<TopicPartition, TopicPartitionOffset>();
         var flushStopwatch = Stopwatch.StartNew();
 
         try
@@ -63,7 +63,9 @@ public sealed class KafkaConsumerService(
                     {
                         var @event = KafkaMessageSerializer.Deserialize(consumeResult.Message.Value);
                         buffer.Add(@event);
-                        lastConsumeResults.Add(consumeResult);
+
+                        // Track highest offset per topic-partition for batch commit.
+                        offsets[consumeResult.TopicPartition] = consumeResult.TopicPartitionOffset;
                     }
                     catch (JsonException ex)
                     {
@@ -82,13 +84,12 @@ public sealed class KafkaConsumerService(
                     {
                         await writer.WriteBatchAsync(buffer, stoppingToken);
 
-                        // Commit offsets only after successful write.
-                        foreach (var cr in lastConsumeResults)
-                            consumer.Commit(cr);
+                        // Commit highest offset per topic-partition in a single call.
+                        consumer.Commit(offsets.Values);
 
                         logger.LogDebug("Flushed {Count} events to TimescaleDB", buffer.Count);
                         buffer.Clear();
-                        lastConsumeResults.Clear();
+                        offsets.Clear();
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
@@ -111,8 +112,7 @@ public sealed class KafkaConsumerService(
             try
             {
                 await writer.WriteBatchAsync(buffer, CancellationToken.None);
-                foreach (var cr in lastConsumeResults)
-                    consumer.Commit(cr);
+                consumer.Commit(offsets.Values);
                 logger.LogInformation("Flushed final {Count} events on shutdown", buffer.Count);
             }
             catch (Exception ex)
