@@ -1,4 +1,5 @@
 using F1Game.UDP.Data;
+using F1Game.UDP.Enums;
 using F1Game.UDP.Packets;
 using Microsoft.Extensions.Options;
 using TelemetryIngester.Configuration;
@@ -209,5 +210,260 @@ public sealed class PacketMapperTests
         Assert.Equal(25.5f, @event.FuelInTank);
         Assert.Equal(100.0f, @event.FuelCapacity);
         Assert.Equal(10, @event.TyresAgeLaps);
+    }
+
+    // ── Participant tests ──────────────────────────────────────────────────────
+
+    [Fact]
+    public void MapParticipantData_MapsAllFields()
+    {
+        var mapper = CreateMapper();
+        var data = new ParticipantData
+        {
+            Name = "Verstappen",
+            Team = Team.RedBullRacing,
+            RaceNumber = 1,
+            Nationality = Nationality.Dutch,
+            IsAiControlled = false,
+            Driver = Driver.MaxVerstappen,
+            Platform = Platform.Steam,
+            IsMyTeam = false,
+            IsTelemetryPublic = true,
+        };
+        var header = MakeHeader(sessionUid: 5000, frameId: 77, playerCarIndex: 0);
+
+        var @event = mapper.MapParticipantData(data, header, 0, DateTimeOffset.UtcNow);
+
+        Assert.Equal("Participant", @event.EventType);
+        Assert.Equal("5000", @event.SessionUid);
+        Assert.Equal(77u, @event.FrameId);
+        Assert.Equal(0, @event.CarIndex);
+        Assert.Equal("Verstappen", @event.Name);
+        Assert.Equal((int)Team.RedBullRacing, @event.Team);
+        Assert.Equal(1, @event.RaceNumber);
+        Assert.Equal((int)Nationality.Dutch, @event.Nationality);
+        Assert.False(@event.IsAiControlled);
+        Assert.Equal((int)Driver.MaxVerstappen, @event.Driver);
+        Assert.Equal((int)Platform.Steam, @event.Platform);
+        Assert.False(@event.IsMyTeam);
+        Assert.True(@event.IsTelemetryPublic);
+    }
+
+    [Fact]
+    public void MapPacket_Participants_AlwaysEmitsAllActiveCars()
+    {
+        var mapper = CreateMapper(allCars: false);
+        var header = MakeHeader(playerCarIndex: 3);
+        var packetData = new ParticipantsDataPacket { Header = header, NumActiveCars = 5 };
+        var packet = new UnionPacket(packetData);
+
+        var events = mapper.MapPacket(packet);
+
+        Assert.Equal(5, events.Count);
+        // All 5 active cars should be emitted, not just the player car.
+        for (byte i = 0; i < 5; i++)
+            Assert.Equal(i, events[i].CarIndex);
+    }
+
+    // ── Session tests ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public void MapSessionData_MapsAllFields()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader(sessionUid: 8888, frameId: 200);
+        var data = new SessionDataPacket
+        {
+            Header = header,
+            Track = Track.Silverstone,
+            SessionType = SessionType.Race,
+            Weather = Weather.LightRain,
+            TrackTemperature = 35,
+            AirTemperature = 22,
+            TotalLaps = 52,
+            TrackLength = 5891,
+            SessionTimeLeft = 3600,
+            SessionDuration = 7200,
+            SafetyCarStatus = SafetyCarType.NoSafetyCar,
+            PitSpeedLimit = 80,
+            Formula = FormulaType.F1Modern,
+            GamePaused = false,
+            PitStopWindowIdealLap = 18,
+            PitStopWindowLatestLap = 25,
+            PitStopRejoinPosition = 5,
+        };
+
+        var @event = mapper.MapSessionData(data, header, DateTimeOffset.UtcNow);
+
+        Assert.Equal("Session", @event.EventType);
+        Assert.Equal("8888", @event.SessionUid);
+        Assert.Equal(200u, @event.FrameId);
+        Assert.Equal(255, @event.CarIndex);
+        Assert.Equal((int)Track.Silverstone, @event.Track);
+        Assert.Equal((int)SessionType.Race, @event.SessionType);
+        Assert.Equal((int)Weather.LightRain, @event.Weather);
+        Assert.Equal(35, @event.TrackTemperature);
+        Assert.Equal(22, @event.AirTemperature);
+        Assert.Equal(52, @event.TotalLaps);
+        Assert.Equal(5891, @event.TrackLength);
+        Assert.Equal(3600, @event.SessionTimeLeft);
+        Assert.Equal(7200, @event.SessionDuration);
+        Assert.Equal((int)SafetyCarType.NoSafetyCar, @event.SafetyCarStatus);
+        Assert.Equal(80, @event.PitSpeedLimit);
+        Assert.Equal((int)FormulaType.F1Modern, @event.Formula);
+        Assert.False(@event.GamePaused);
+        Assert.Equal(18, @event.PitStopWindowIdealLap);
+        Assert.Equal(25, @event.PitStopWindowLatestLap);
+        Assert.Equal(5, @event.PitStopRejoinPosition);
+    }
+
+    [Fact]
+    public void MapPacket_Session_EmitsSingleEvent()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+        var packetData = new SessionDataPacket { Header = header };
+        var packet = new UnionPacket(packetData);
+
+        var events = mapper.MapPacket(packet);
+
+        Assert.Single(events);
+        Assert.Equal("Session", events[0].EventType);
+    }
+
+    // ── Session history tests ──────────────────────────────────────────────────
+
+    [Fact]
+    public void MapSessionHistoryData_MapsMetadataFields()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader(sessionUid: 7777, frameId: 300);
+
+        // Build the lap history array first — inline arrays on init-only properties
+        // can only be populated before passing them into the object initializer.
+        var lapHistory = new Array100<LapHistoryData>();
+        lapHistory[1] = new LapHistoryData
+        {
+            LapTimeInMS = 90500,
+            Sector1TimeInMS = 28000,
+            Sector1TimeMinutes = 0,
+            Sector2TimeInMS = 31000,
+            Sector2TimeMinutes = 0,
+            Sector3TimeInMS = 31500,
+            Sector3TimeMinutes = 0,
+            LapValidBitFlags = LapValid.LapValid | LapValid.Sector1Valid | LapValid.Sector2Valid | LapValid.Sector3Valid,
+        };
+
+        var data = new SessionHistoryDataPacket
+        {
+            Header = header,
+            CarIndex = 0,
+            NumLaps = 3, // Current lap is 3 → latest completed is index 1
+            NumTyreStints = 1,
+            BestLapTimeLapNum = 1,
+            BestSector1LapNum = 2,
+            BestSector2LapNum = 1,
+            BestSector3LapNum = 2,
+            LapHistoryData = lapHistory,
+        };
+
+        var @event = mapper.MapSessionHistoryData(data, header, DateTimeOffset.UtcNow);
+
+        Assert.Equal("SessionHistory", @event.EventType);
+        Assert.Equal("7777", @event.SessionUid);
+        Assert.Equal(300u, @event.FrameId);
+        Assert.Equal(0, @event.CarIndex);
+        Assert.Equal(3, @event.NumLaps);
+        Assert.Equal(1, @event.NumTyreStints);
+        Assert.Equal(1, @event.BestLapTimeLapNum);
+        Assert.Equal(2, @event.BestSector1LapNum);
+        Assert.Equal(1, @event.BestSector2LapNum);
+        Assert.Equal(2, @event.BestSector3LapNum);
+        Assert.Equal(90500, @event.LatestLapTimeMs);
+        Assert.Equal(28000, @event.LatestSector1TimeMs);
+        Assert.Equal(31000, @event.LatestSector2TimeMs);
+        Assert.Equal(31500, @event.LatestSector3TimeMs);
+        Assert.True(@event.LatestLapValid);
+    }
+
+    [Fact]
+    public void MapSessionHistoryData_NoCompletedLaps_NullLatestFields()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+        var data = new SessionHistoryDataPacket
+        {
+            Header = header,
+            CarIndex = 0,
+            NumLaps = 1, // Only current in-progress lap — no completed laps
+            NumTyreStints = 1,
+        };
+
+        var @event = mapper.MapSessionHistoryData(data, header, DateTimeOffset.UtcNow);
+
+        Assert.Null(@event.LatestLapTimeMs);
+        Assert.Null(@event.LatestSector1TimeMs);
+        Assert.Null(@event.LatestSector2TimeMs);
+        Assert.Null(@event.LatestSector3TimeMs);
+        Assert.Null(@event.LatestLapValid);
+    }
+
+    [Fact]
+    public void MapSessionHistoryData_CombinesSectorTime()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+
+        var lapHistory = new Array100<LapHistoryData>();
+        lapHistory[1] = new LapHistoryData
+        {
+            LapTimeInMS = 120000,
+            Sector1TimeInMS = 28000,
+            Sector1TimeMinutes = 0,
+            Sector2TimeInMS = 31000,
+            Sector2TimeMinutes = 0,
+            Sector3TimeInMS = 500,
+            Sector3TimeMinutes = 1, // 1 minute + 500ms = 60500ms
+            LapValidBitFlags = LapValid.LapValid,
+        };
+
+        var data = new SessionHistoryDataPacket
+        {
+            Header = header,
+            CarIndex = 0,
+            NumLaps = 3, // Latest completed = index 1
+            NumTyreStints = 1,
+            LapHistoryData = lapHistory,
+        };
+
+        var @event = mapper.MapSessionHistoryData(data, header, DateTimeOffset.UtcNow);
+
+        Assert.Equal(60500, @event.LatestSector3TimeMs);
+    }
+
+    [Fact]
+    public void MapPacket_SessionHistory_RespectsPlayerCarFilter()
+    {
+        var header = MakeHeader(playerCarIndex: 3);
+
+        // CarIndex=5 does not match playerCarIndex=3 → filtered out when allCars=false.
+        var packetData = new SessionHistoryDataPacket
+        {
+            Header = header,
+            CarIndex = 5,
+            NumLaps = 2,
+            NumTyreStints = 1,
+        };
+        var packet = new UnionPacket(packetData);
+
+        var mapperFiltered = CreateMapper(allCars: false);
+        var eventsFiltered = mapperFiltered.MapPacket(packet);
+        Assert.Empty(eventsFiltered);
+
+        // With allCars=true, the event should be emitted.
+        var mapperAll = CreateMapper(allCars: true);
+        var eventsAll = mapperAll.MapPacket(packet);
+        Assert.Single(eventsAll);
+        Assert.Equal("SessionHistory", eventsAll[0].EventType);
     }
 }
