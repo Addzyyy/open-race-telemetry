@@ -329,6 +329,38 @@ public sealed class KafkaSerializationTests
     }
 
     [Fact]
+    public void Deserialize_SessionHistoryEvent_WithNulls_RoundTrip()
+    {
+        var original = new SessionHistoryEvent
+        {
+            EventType = "SessionHistory",
+            SessionUid = "66666",
+            Timestamp = new DateTimeOffset(2025, 6, 15, 14, 0, 0, TimeSpan.Zero),
+            FrameId = 71u,
+            CarIndex = 0,
+            NumLaps = 1,
+            NumTyreStints = 1,
+            BestLapTimeLapNum = 0,
+            BestSector1LapNum = 0,
+            BestSector2LapNum = 0,
+            BestSector3LapNum = 0,
+            LatestLapTimeMs = null,
+            LatestSector1TimeMs = null,
+            LatestSector2TimeMs = null,
+            LatestSector3TimeMs = null,
+            LatestLapValid = null,
+        };
+
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<SessionHistoryEvent>(deserialized);
+        Assert.Null(result.LatestLapTimeMs);
+        Assert.Null(result.LatestSector3TimeMs);
+        Assert.Null(result.LatestLapValid);
+    }
+
+    [Fact]
     public void Deserialize_UnknownEventType_ThrowsJsonException()
     {
         var json = """{"eventType":"Unknown","sessionUid":"1","timestamp":"2025-01-01T00:00:00+00:00","frameId":1,"carIndex":0,"data":{}}""";
