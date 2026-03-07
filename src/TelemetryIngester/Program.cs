@@ -4,6 +4,7 @@ using TelemetryIngester.Configuration;
 using TelemetryIngester.Kafka;
 using TelemetryIngester.Mapping;
 using TelemetryIngester.Services;
+using TelemetryIngester.Storage;
 
 // Build the .NET generic host — this manages dependency injection, configuration,
 // logging, and the application lifetime (start/stop signals).
@@ -24,9 +25,12 @@ builder.Services.Configure<IngesterOptions>(builder.Configuration.GetSection("In
 builder.Services.AddSingleton<IPacketMapper, PacketMapper>();
 builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 
-// Register the UDP listener as a hosted background service.
-// The host starts it automatically and passes a cancellation token on shutdown.
+builder.Services.AddSingleton<ITimescaleWriter, TimescaleWriter>();
+
+// Register hosted background services.
+// The host starts them automatically and passes a cancellation token on shutdown.
 builder.Services.AddHostedService<UdpListenerService>();
+builder.Services.AddHostedService<KafkaConsumerService>();
 
 var host = builder.Build();
 host.Run();
