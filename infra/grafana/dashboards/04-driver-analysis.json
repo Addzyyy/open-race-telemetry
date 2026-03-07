@@ -96,44 +96,26 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "axisCenteredZero": true
+            "axisCenteredZero": true,
+            "show": "points",
+            "pointSize": { "fixed": 3 }
           },
+          "min": -5,
+          "max": 5,
           "color": {
             "mode": "fixed",
             "fixedColor": "#00FF00"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null }
-            ]
           }
         },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "x" },
-            "properties": [
-              { "id": "min", "value": -5 },
-              { "id": "max", "value": 5 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "y" },
-            "properties": [
-              { "id": "min", "value": -5 },
-              { "id": "max", "value": 5 }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "options": {
         "seriesMapping": "manual",
         "series": [
           {
-            "x": { "field": "x" },
-            "y": { "field": "y" },
-            "pointSize": { "fixed": 3 },
-            "pointColor": { "fixed": "#00FF00" }
+            "frame": { "matcher": { "id": "byIndex", "options": 0 } },
+            "x": { "matcher": { "id": "byName", "options": "x" } },
+            "y": { "matcher": { "id": "byName", "options": "y" } }
           }
         ],
         "tooltip": { "mode": "single", "sort": "none" },
@@ -412,7 +394,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT FLOOR(latest_lap_time_ms / 500.0) * 0.5 AS \"Time Bucket (s)\", COUNT(*) AS \"Count\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_lap_valid = true GROUP BY FLOOR(latest_lap_time_ms / 500.0) ORDER BY \"Time Bucket (s)\"",
+          "rawSql": "SELECT (FLOOR(latest_lap_time_ms / 500.0) * 0.5)::text || 's' AS \"Time Bucket\", COUNT(*) AS \"Count\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_lap_valid = true GROUP BY FLOOR(latest_lap_time_ms / 500.0) ORDER BY FLOOR(latest_lap_time_ms / 500.0)",
           "refId": "A"
         }
       ]
@@ -541,13 +523,9 @@
             "mode": "fixed"
           },
           "custom": {
-            "axisCenteredZero": false
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null }
-            ]
+            "axisCenteredZero": false,
+            "show": "points",
+            "pointSize": { "fixed": 2 }
           }
         },
         "overrides": [
@@ -569,10 +547,9 @@
         "seriesMapping": "manual",
         "series": [
           {
-            "x": { "field": "x" },
-            "y": { "field": "y" },
-            "pointSize": { "fixed": 2 },
-            "pointColor": { "fixed": "#FF0000" }
+            "frame": { "matcher": { "id": "byIndex", "options": 0 } },
+            "x": { "matcher": { "id": "byName", "options": "x" } },
+            "y": { "matcher": { "id": "byName", "options": "y" } }
           }
         ],
         "tooltip": { "mode": "single", "sort": "none" },

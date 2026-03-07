@@ -53,6 +53,8 @@ internal static class KafkaMessageSerializer
             "Session" => typeof(SessionEvent),
             "SessionHistory" => typeof(SessionHistoryEvent),
             "WeatherForecast" => typeof(WeatherForecastEvent),
+            "CarMotion" => typeof(CarMotionEvent),
+            "FinalClassification" => typeof(FinalClassificationEvent),
             _ => throw new JsonException($"Unknown event type: {eventType}"),
         };
 
