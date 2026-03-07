@@ -188,19 +188,25 @@ public sealed class TimescaleWriterIntegrationTests : IAsyncLifetime
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
 
-        await using var cmd1 = new NpgsqlCommand(
-            "SELECT latest_sector3_time_ms, latest_lap_valid FROM session_history WHERE frame_id = 50", conn);
-        await using var reader1 = await cmd1.ExecuteReaderAsync();
-        Assert.True(await reader1.ReadAsync());
-        Assert.Equal(26432, reader1.GetInt32(0));
-        Assert.True(reader1.GetBoolean(1));
+        // Verify event with completed laps.
+        await using (var cmd1 = new NpgsqlCommand(
+            "SELECT latest_sector3_time_ms, latest_lap_valid FROM session_history WHERE frame_id = 50", conn))
+        await using (var reader1 = await cmd1.ExecuteReaderAsync())
+        {
+            Assert.True(await reader1.ReadAsync());
+            Assert.Equal(26432, reader1.GetInt32(0));
+            Assert.True(reader1.GetBoolean(1));
+        }
 
-        await using var cmd2 = new NpgsqlCommand(
-            "SELECT latest_sector3_time_ms, latest_lap_valid FROM session_history WHERE frame_id = 51", conn);
-        await using var reader2 = await cmd2.ExecuteReaderAsync();
-        Assert.True(await reader2.ReadAsync());
-        Assert.True(reader2.IsDBNull(0));
-        Assert.True(reader2.IsDBNull(1));
+        // Verify event without completed laps (null latest fields).
+        await using (var cmd2 = new NpgsqlCommand(
+            "SELECT latest_sector3_time_ms, latest_lap_valid FROM session_history WHERE frame_id = 51", conn))
+        await using (var reader2 = await cmd2.ExecuteReaderAsync())
+        {
+            Assert.True(await reader2.ReadAsync());
+            Assert.True(reader2.IsDBNull(0));
+            Assert.True(reader2.IsDBNull(1));
+        }
     }
 
     [Fact]
