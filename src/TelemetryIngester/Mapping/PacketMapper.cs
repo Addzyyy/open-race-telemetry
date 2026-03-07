@@ -6,16 +6,28 @@ using TelemetryIngester.Events;
 
 namespace TelemetryIngester.Mapping;
 
+/// <summary>
+/// Translates raw F1Game.UDP packet structs into canonical <see cref="TelemetryEvent"/> records.
+/// This is the only place in the codebase that depends on the F1Game.UDP library types —
+/// everything downstream works with our own event records instead.
+/// </summary>
 public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMapper
 {
     private readonly TelemetryOptions _options = options.Value;
 
+    /// <summary>
+    /// Inspects the incoming packet, maps it to zero or more events, and returns them.
+    /// Only four packet types are handled; all others (motion, session, participants, etc.)
+    /// return an empty list.
+    /// </summary>
     public IReadOnlyList<TelemetryEvent> MapPacket(UnionPacket packet)
     {
         var header = packet.Header;
         var now = DateTimeOffset.UtcNow;
         List<TelemetryEvent> events = [];
 
+        // Each TryGet call checks whether this packet is of the given type.
+        // Exactly one will succeed per packet — the game sends one type per UDP datagram.
         if (packet.TryGetCarTelemetryDataPacket(out var carTelemetry))
         {
             foreach (var carIndex in CarIndices(header))
@@ -47,14 +59,25 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
         return events;
     }
 
+    // Lazily builds and caches the full 0–19 index list the first time AllCars mode is used.
+    // The field keyword (C# 14) gives us a compiler-generated backing field without a separate declaration.
     private IReadOnlyList<byte> AllCarIndices
     {
         get => field ??= Enumerable.Range(0, 20).Select(i => (byte)i).ToArray();
     }
 
+    /// <summary>
+    /// Returns the car indices to emit events for.
+    /// In default mode only the player's own car is emitted; in AllCars mode all 20 slots are emitted.
+    /// </summary>
     private IEnumerable<byte> CarIndices(PacketHeader header) =>
         _options.AllCars ? AllCarIndices : [(byte)header.PlayerCarIndex];
 
+    // ── Internal mapping methods ───────────────────────────────────────────────
+    // Marked internal so unit tests can call them directly via InternalsVisibleTo,
+    // without needing to construct a full UnionPacket.
+
+    /// <summary>Maps a single car's telemetry struct to a <see cref="CarTelemetryEvent"/>.</summary>
     internal CarTelemetryEvent MapCarTelemetryData(
         CarTelemetryData data, PacketHeader header, byte carIndex, DateTimeOffset timestamp) =>
         new()
@@ -73,6 +96,8 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             EngineRpm = data.EngineRPM,
             Drs = data.IsDrsOn,
             RevLightsPercent = data.RevLightsPercent,
+            // F1Game.UDP uses a Tyres<T> struct with named positions rather than a plain array.
+            // RearLeft/RearRight/FrontLeft/FrontRight correspond to Rl/Rr/Fl/Fr in our event names.
             BrakesTempRl = data.BrakesTemperature.RearLeft,
             BrakesTempRr = data.BrakesTemperature.RearRight,
             BrakesTempFl = data.BrakesTemperature.FrontLeft,
@@ -87,6 +112,7 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             TyresInnerTempFr = data.TyresInnerTemperature.FrontRight,
         };
 
+    /// <summary>Maps a single car's lap data struct to a <see cref="LapDataEvent"/>.</summary>
     internal LapDataEvent MapLapData(
         LapData data, PacketHeader header, byte carIndex, DateTimeOffset timestamp) =>
         new()
@@ -112,6 +138,10 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             ResultStatus = (int)data.ResultStatus,
         };
 
+    /// <summary>
+    /// Maps a car's status data (fuel, ERS, tyres) to a <see cref="CarStatusEvent"/>.
+    /// Tyre wear fields are left null — those come from <see cref="MapCarDamageData"/>.
+    /// </summary>
     internal CarStatusEvent MapCarStatusData(
         CarStatusData data, PacketHeader header, byte carIndex, DateTimeOffset timestamp) =>
         new()
@@ -138,6 +168,10 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             ErsDeployedLap = data.ErsDeployedThisLap,
         };
 
+    /// <summary>
+    /// Maps a car's damage data (tyre wear) to a <see cref="CarStatusEvent"/>.
+    /// Fuel and ERS fields are left null — those come from <see cref="MapCarStatusData"/>.
+    /// </summary>
     internal CarStatusEvent MapCarDamageData(
         CarDamageData data, PacketHeader header, byte carIndex, DateTimeOffset timestamp) =>
         new()
@@ -164,6 +198,11 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             ErsDeployedLap = null,
         };
 
+    /// <summary>
+    /// Combines the split minutes/milliseconds fields the F1 game uses for sector times
+    /// into a single total-milliseconds value, or returns <c>null</c> if the sector hasn't
+    /// been completed yet (both parts are zero).
+    /// </summary>
     private static int? CombineSectorTime(ushort ms, byte minutes) =>
         ms == 0 && minutes == 0 ? null : (int?)(minutes * 60_000 + ms);
 }

@@ -6,6 +6,11 @@ using TelemetryIngester.Events;
 
 namespace TelemetryIngester.Kafka;
 
+/// <summary>
+/// Publishes telemetry events to Kafka topics using the Confluent Kafka producer.
+/// Failures are logged as warnings rather than thrown — dropping an occasional telemetry
+/// frame is preferable to crashing the ingestion loop.
+/// </summary>
 public sealed class KafkaProducer : IKafkaProducer
 {
     private readonly IProducer<string, string> _producer;
@@ -18,14 +23,18 @@ public sealed class KafkaProducer : IKafkaProducer
         _producer = new ProducerBuilder<string, string>(config).Build();
     }
 
+    /// <summary>
+    /// Routes the event to the correct Kafka topic, serialises it, and publishes it.
+    /// </summary>
     public async Task ProduceAsync(TelemetryEvent @event, CancellationToken cancellationToken = default)
     {
+        // Map event type to Kafka topic name.
         var topic = @event.EventType switch
         {
             "CarTelemetry" => "car-telemetry",
-            "LapData" => "lap-data",
-            "CarStatus" => "car-status",
-            _ => null,
+            "LapData"      => "lap-data",
+            "CarStatus"    => "car-status",
+            _              => null,
         };
 
         if (topic is null)
@@ -34,6 +43,8 @@ public sealed class KafkaProducer : IKafkaProducer
             return;
         }
 
+        // Use session+car as the partition key so all messages for the same car in the same
+        // session always land on the same Kafka partition, preserving ordering.
         var key = $"{@event.SessionUid}-{@event.CarIndex}";
         var value = KafkaMessageSerializer.Serialize(@event);
 
@@ -51,8 +62,13 @@ public sealed class KafkaProducer : IKafkaProducer
         }
     }
 
+    /// <summary>
+    /// Flushes any buffered messages to Kafka and disposes the producer on shutdown.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
+        // Flush blocks until all buffered messages are delivered or the timeout expires.
+        // Wrapped in Task.Run because the Confluent SDK's Flush is synchronous.
         await Task.Run(() => _producer.Flush(TimeSpan.FromSeconds(5)));
         _producer.Dispose();
     }

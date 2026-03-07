@@ -4,6 +4,21 @@ using TelemetryIngester.Events;
 
 namespace TelemetryIngester.Kafka;
 
+/// <summary>
+/// Serialises a <see cref="TelemetryEvent"/> into the canonical Kafka message envelope:
+/// <code>
+/// {
+///   "eventType": "CarTelemetry",
+///   "sessionUid": "...",
+///   "timestamp": "...",
+///   "frameId": 12345,
+///   "carIndex": 0,
+///   "data": { /* domain-specific fields */ }
+/// }
+/// </code>
+/// The five base fields are promoted to the top level so Kafka consumers can filter by
+/// event type or session without deserialising the nested <c>data</c> object.
+/// </summary>
 internal static class KafkaMessageSerializer
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -11,24 +26,34 @@ internal static class KafkaMessageSerializer
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
+    // The five fields that live at the top level of the envelope rather than inside "data".
     private static readonly HashSet<string> BasePropertyNames =
         ["eventType", "sessionUid", "timestamp", "frameId", "carIndex"];
 
+    /// <summary>
+    /// Serialises <paramref name="event"/> to the envelope JSON format described above.
+    /// </summary>
     internal static string Serialize(TelemetryEvent @event)
     {
+        // First pass: serialise the full event record to JSON so we can iterate its properties.
+        // We use the concrete runtime type (not TelemetryEvent) so derived-class properties are included.
         var json = JsonSerializer.Serialize(@event, @event.GetType(), JsonOptions);
         using var doc = JsonDocument.Parse(json);
 
+        // Second pass: rebuild the JSON in the envelope shape using a streaming writer.
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
 
         writer.WriteStartObject();
+
+        // Write the five base fields at the top level with their exact names.
         writer.WriteString("eventType", @event.EventType);
         writer.WriteString("sessionUid", @event.SessionUid);
-        writer.WriteString("timestamp", @event.Timestamp.ToString("O"));
+        writer.WriteString("timestamp", @event.Timestamp.ToString("O")); // ISO 8601 round-trip format
         writer.WriteNumber("frameId", @event.FrameId);
         writer.WriteNumber("carIndex", @event.CarIndex);
 
+        // Write all remaining (domain-specific) properties nested under "data".
         writer.WritePropertyName("data");
         writer.WriteStartObject();
         foreach (var prop in doc.RootElement.EnumerateObject())
