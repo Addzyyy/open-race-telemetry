@@ -76,6 +76,24 @@ services:
     networks:
       - telemetry-net
 
+  ingester:
+    build:
+      context: ..
+      dockerfile: src/TelemetryIngester/Dockerfile
+    container_name: ingester
+    ports:
+      - "20777:20777/udp"
+    environment:
+      Kafka__BootstrapServers: kafka:29092
+      TimescaleDb__ConnectionString: "Host=timescaledb;Port=5432;Database=telemetry;Username=telemetry;Password=telemetry"
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - telemetry-net
+
 volumes:
   tsdb-data:
 
