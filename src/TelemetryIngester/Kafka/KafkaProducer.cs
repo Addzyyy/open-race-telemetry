@@ -19,7 +19,11 @@ public sealed class KafkaProducer : IKafkaProducer
     public KafkaProducer(IOptions<KafkaOptions> options, ILogger<KafkaProducer> logger)
     {
         _logger = logger;
-        var config = new ProducerConfig { BootstrapServers = options.Value.BootstrapServers };
+        var config = new ProducerConfig
+        {
+            BootstrapServers = options.Value.BootstrapServers,
+            MessageTimeoutMs = 10_000,
+        };
         _producer = new ProducerBuilder<string, string>(config).Build();
     }
 
