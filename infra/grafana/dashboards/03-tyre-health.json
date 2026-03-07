@@ -72,13 +72,11 @@
       {
         "name": "car_index",
         "label": "Car",
-        "type": "custom",
-        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
-        "current": {
-          "selected": true,
-          "text": "0",
-          "value": "0"
-        },
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT DISTINCT car_index FROM car_telemetry WHERE session_uid='$session' ORDER BY car_index",
+        "refresh": 2,
+        "sort": 3,
         "includeAll": false,
         "multi": false
       }
