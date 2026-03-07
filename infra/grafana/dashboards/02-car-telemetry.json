@@ -141,7 +141,8 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "value"
+            "mode": "fixed",
+            "fixedColor": "#FFFFFF"
           },
           "mappings": [
             {
