@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-unit-test:
+    name: Build & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Restore
+        run: dotnet restore open-race-telemetry.sln
+
+      - name: Build
+        run: dotnet build open-race-telemetry.sln --no-restore
+
+      - name: Unit Tests
+        run: dotnet test src/TelemetryIngester.Tests --no-build --filter "ClassName~PacketMapperTests|ClassName~KafkaSerializationTests"
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Restore
+        run: dotnet restore open-race-telemetry.sln
+
+      - name: Build
+        run: dotnet build open-race-telemetry.sln --no-restore
+
+      - name: Integration Tests
+        run: dotnet test src/TelemetryIngester.Tests --no-build --filter "ClassName~TimescaleWriterIntegrationTests"
