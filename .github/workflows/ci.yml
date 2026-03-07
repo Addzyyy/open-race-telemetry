@@ -26,7 +26,7 @@ jobs:
         run: dotnet build open-race-telemetry.sln --no-restore
 
       - name: Unit Tests
-        run: dotnet test src/TelemetryIngester.Tests --no-build --filter "ClassName~PacketMapperTests|ClassName~KafkaSerializationTests"
+        run: dotnet test src/TelemetryIngester.Tests --no-build --filter "ClassName~PacketMapperTests|ClassName~KafkaSerializationTests|ClassName~KafkaConsumerServiceTests"
 
   integration-test:
     name: Integration Tests
