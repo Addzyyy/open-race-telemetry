@@ -47,4 +47,4 @@ jobs:
         run: dotnet build open-race-telemetry.sln --no-restore
 
       - name: Integration Tests
-        run: dotnet test src/TelemetryIngester.Tests --no-build --filter "ClassName~TimescaleWriterIntegrationTests"
+        run: dotnet test src/TelemetryIngester.Tests --no-build --filter "FullyQualifiedName~TimescaleWriterIntegrationTests|FullyQualifiedName~KafkaToTimescaleIntegrationTests"
