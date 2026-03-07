@@ -51,6 +51,9 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
             new TopicSpecification { Name = "car-telemetry", NumPartitions = 1, ReplicationFactor = 1 },
             new TopicSpecification { Name = "lap-data", NumPartitions = 1, ReplicationFactor = 1 },
             new TopicSpecification { Name = "car-status", NumPartitions = 1, ReplicationFactor = 1 },
+            new TopicSpecification { Name = "participants", NumPartitions = 1, ReplicationFactor = 1 },
+            new TopicSpecification { Name = "session", NumPartitions = 1, ReplicationFactor = 1 },
+            new TopicSpecification { Name = "session-history", NumPartitions = 1, ReplicationFactor = 1 },
         ]);
     }
 
@@ -100,6 +103,36 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ProduceAndConsume_ParticipantEvents_WrittenToTimescaleDb()
+    {
+        await TruncateAllTablesAsync();
+
+        await using var producer = CreateProducer();
+        var writer = CreateWriter();
+        using var consumer = CreateConsumerService(writer, batchSize: 5, flushIntervalMs: 200);
+
+        await producer.ProduceAsync(MakeParticipantEvent(frameId: 1));
+        await producer.ProduceAsync(MakeParticipantEvent(frameId: 2));
+
+        await consumer.StartAsync(CancellationToken.None);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await WaitForRowsAsync("participants", 2, cts.Token);
+
+        await consumer.StopAsync(CancellationToken.None);
+
+        // Verify name and team fields for one row.
+        await using var conn = new NpgsqlConnection(_connectionString);
+        await conn.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            "SELECT name, team FROM participants WHERE frame_id = 1", conn);
+        await using var reader = await cmd.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        Assert.Equal("Max Verstappen", reader.GetString(0));
+        Assert.Equal((short)1, reader.GetInt16(1));
+    }
+
+    [Fact]
     public async Task ProduceAndConsume_MixedEventTypes_WrittenToCorrectTables()
     {
         await TruncateAllTablesAsync();
@@ -113,6 +146,9 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
         await producer.ProduceAsync(MakeLapDataEvent(frameId: 12));
         await producer.ProduceAsync(MakeCarStatusEvent(frameId: 13, fromDamagePacket: false));
         await producer.ProduceAsync(MakeCarStatusEvent(frameId: 14, fromDamagePacket: true));
+        await producer.ProduceAsync(MakeParticipantEvent(frameId: 15));
+        await producer.ProduceAsync(MakeSessionEvent(frameId: 16));
+        await producer.ProduceAsync(MakeSessionHistoryEvent(frameId: 17));
 
         await consumer.StartAsync(CancellationToken.None);
 
@@ -121,7 +157,10 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
         await Task.WhenAll(
             WaitForRowsAsync("car_telemetry", 2, cts.Token),
             WaitForRowsAsync("lap_data", 1, cts.Token),
-            WaitForRowsAsync("car_status", 2, cts.Token));
+            WaitForRowsAsync("car_status", 2, cts.Token),
+            WaitForRowsAsync("participants", 1, cts.Token),
+            WaitForRowsAsync("session", 1, cts.Token),
+            WaitForRowsAsync("session_history", 1, cts.Token));
 
         await consumer.StopAsync(CancellationToken.None);
 
@@ -228,7 +267,7 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
         await using var cmd = new NpgsqlCommand(
-            "TRUNCATE car_telemetry, lap_data, car_status", conn);
+            "TRUNCATE car_telemetry, lap_data, car_status, participants, session, session_history", conn);
         await cmd.ExecuteNonQueryAsync();
     }
 
@@ -324,6 +363,33 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
         ErsHarvestedLapMguk = fromDamagePacket ? null : 500_000f,
         ErsHarvestedLapMguh = fromDamagePacket ? null : 1_000_000f,
         ErsDeployedLap = fromDamagePacket ? null : 800_000f,
+    };
+
+    private static ParticipantEvent MakeParticipantEvent(uint frameId) => new()
+    {
+        EventType = "Participant", SessionUid = "99999", Timestamp = DateTimeOffset.UtcNow,
+        FrameId = frameId, CarIndex = 0, Name = "Max Verstappen", Team = 1,
+        RaceNumber = 1, Nationality = 5, IsAiControlled = false, Driver = 10,
+        Platform = 1, IsMyTeam = false, IsTelemetryPublic = true,
+    };
+
+    private static SessionEvent MakeSessionEvent(uint frameId) => new()
+    {
+        EventType = "Session", SessionUid = "99999", Timestamp = DateTimeOffset.UtcNow,
+        FrameId = frameId, CarIndex = 255, Track = 3, SessionType = 10, Weather = 0,
+        TrackTemperature = 35, AirTemperature = 28, TotalLaps = 57, TrackLength = 5303,
+        SessionTimeLeft = 3600, SessionDuration = 7200, SafetyCarStatus = 0,
+        PitSpeedLimit = 80, Formula = 0, GamePaused = false,
+        PitStopWindowIdealLap = 20, PitStopWindowLatestLap = 25, PitStopRejoinPosition = 5,
+    };
+
+    private static SessionHistoryEvent MakeSessionHistoryEvent(uint frameId) => new()
+    {
+        EventType = "SessionHistory", SessionUid = "99999", Timestamp = DateTimeOffset.UtcNow,
+        FrameId = frameId, CarIndex = 0, NumLaps = 5, NumTyreStints = 1,
+        BestLapTimeLapNum = 3, BestSector1LapNum = 3, BestSector2LapNum = 2,
+        BestSector3LapNum = 3, LatestLapTimeMs = 85432, LatestSector1TimeMs = 28000,
+        LatestSector2TimeMs = 31000, LatestSector3TimeMs = 26432, LatestLapValid = true,
     };
 
     private static string FindRepoRoot()

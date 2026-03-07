@@ -228,6 +228,139 @@ public sealed class KafkaSerializationTests
     }
 
     [Fact]
+    public void Deserialize_ParticipantEvent_RoundTrip()
+    {
+        var original = new ParticipantEvent
+        {
+            EventType = "Participant",
+            SessionUid = "88888",
+            Timestamp = new DateTimeOffset(2025, 6, 15, 14, 0, 0, TimeSpan.Zero),
+            FrameId = 50u,
+            CarIndex = 3,
+            Name = "Max Verstappen",
+            Team = 1,
+            RaceNumber = 1,
+            Nationality = 5,
+            IsAiControlled = false,
+            Driver = 10,
+            Platform = 1,
+            IsMyTeam = false,
+            IsTelemetryPublic = true,
+        };
+
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<ParticipantEvent>(deserialized);
+        Assert.Equal(original.Name, result.Name);
+        Assert.Equal(original.Team, result.Team);
+        Assert.Equal(original.IsAiControlled, result.IsAiControlled);
+        Assert.Equal(original.IsTelemetryPublic, result.IsTelemetryPublic);
+    }
+
+    [Fact]
+    public void Deserialize_SessionEvent_RoundTrip()
+    {
+        var original = new SessionEvent
+        {
+            EventType = "Session",
+            SessionUid = "77777",
+            Timestamp = new DateTimeOffset(2025, 6, 15, 14, 0, 0, TimeSpan.Zero),
+            FrameId = 60u,
+            CarIndex = 255,
+            Track = 3,
+            SessionType = 10,
+            Weather = 0,
+            TrackTemperature = 35,
+            AirTemperature = 28,
+            TotalLaps = 57,
+            TrackLength = 5303,
+            SessionTimeLeft = 3600,
+            SessionDuration = 7200,
+            SafetyCarStatus = 0,
+            PitSpeedLimit = 80,
+            Formula = 0,
+            GamePaused = false,
+            PitStopWindowIdealLap = 20,
+            PitStopWindowLatestLap = 25,
+            PitStopRejoinPosition = 5,
+        };
+
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<SessionEvent>(deserialized);
+        Assert.Equal(255, result.CarIndex);
+        Assert.Equal(original.Track, result.Track);
+        Assert.Equal(original.TrackLength, result.TrackLength);
+        Assert.Equal(original.TotalLaps, result.TotalLaps);
+    }
+
+    [Fact]
+    public void Deserialize_SessionHistoryEvent_RoundTrip()
+    {
+        var original = new SessionHistoryEvent
+        {
+            EventType = "SessionHistory",
+            SessionUid = "66666",
+            Timestamp = new DateTimeOffset(2025, 6, 15, 14, 0, 0, TimeSpan.Zero),
+            FrameId = 70u,
+            CarIndex = 0,
+            NumLaps = 5,
+            NumTyreStints = 1,
+            BestLapTimeLapNum = 3,
+            BestSector1LapNum = 3,
+            BestSector2LapNum = 2,
+            BestSector3LapNum = 3,
+            LatestLapTimeMs = 85432,
+            LatestSector1TimeMs = 28000,
+            LatestSector2TimeMs = 31000,
+            LatestSector3TimeMs = 26432,
+            LatestLapValid = true,
+        };
+
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<SessionHistoryEvent>(deserialized);
+        Assert.Equal(original.NumLaps, result.NumLaps);
+        Assert.Equal(original.LatestSector3TimeMs, result.LatestSector3TimeMs);
+        Assert.Equal(original.LatestLapValid, result.LatestLapValid);
+    }
+
+    [Fact]
+    public void Deserialize_SessionHistoryEvent_WithNulls_RoundTrip()
+    {
+        var original = new SessionHistoryEvent
+        {
+            EventType = "SessionHistory",
+            SessionUid = "66666",
+            Timestamp = new DateTimeOffset(2025, 6, 15, 14, 0, 0, TimeSpan.Zero),
+            FrameId = 71u,
+            CarIndex = 0,
+            NumLaps = 1,
+            NumTyreStints = 1,
+            BestLapTimeLapNum = 0,
+            BestSector1LapNum = 0,
+            BestSector2LapNum = 0,
+            BestSector3LapNum = 0,
+            LatestLapTimeMs = null,
+            LatestSector1TimeMs = null,
+            LatestSector2TimeMs = null,
+            LatestSector3TimeMs = null,
+            LatestLapValid = null,
+        };
+
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<SessionHistoryEvent>(deserialized);
+        Assert.Null(result.LatestLapTimeMs);
+        Assert.Null(result.LatestSector3TimeMs);
+        Assert.Null(result.LatestLapValid);
+    }
+
+    [Fact]
     public void Deserialize_UnknownEventType_ThrowsJsonException()
     {
         var json = """{"eventType":"Unknown","sessionUid":"1","timestamp":"2025-01-01T00:00:00+00:00","frameId":1,"carIndex":0,"data":{}}""";

@@ -114,6 +114,9 @@ public sealed class TimescaleWriterIntegrationTests : IAsyncLifetime
             MakeCarTelemetryEvent(frameId: 100),
             MakeLapDataEvent(frameId: 101),
             MakeCarStatusEvent(frameId: 102, fromDamagePacket: false),
+            MakeParticipantEvent(frameId: 103),
+            MakeSessionEvent(frameId: 104),
+            MakeSessionHistoryEvent(frameId: 105, hasCompletedLaps: true),
         };
 
         await _writer.WriteBatchAsync(events, CancellationToken.None);
@@ -124,6 +127,86 @@ public sealed class TimescaleWriterIntegrationTests : IAsyncLifetime
         Assert.Equal(1L, await CountRowsAsync(conn, "car_telemetry"));
         Assert.Equal(1L, await CountRowsAsync(conn, "lap_data"));
         Assert.Equal(1L, await CountRowsAsync(conn, "car_status"));
+        Assert.Equal(1L, await CountRowsAsync(conn, "participants"));
+        Assert.Equal(1L, await CountRowsAsync(conn, "session"));
+        Assert.Equal(1L, await CountRowsAsync(conn, "session_history"));
+    }
+
+    [Fact]
+    public async Task WriteBatch_ParticipantEvents_InsertsRows()
+    {
+        var events = new List<TelemetryEvent>
+        {
+            MakeParticipantEvent(frameId: 30),
+        };
+
+        await _writer.WriteBatchAsync(events, CancellationToken.None);
+
+        await using var conn = new NpgsqlConnection(_connectionString);
+        await conn.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            "SELECT name, team, is_ai_controlled FROM participants WHERE frame_id = 30", conn);
+        await using var reader = await cmd.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        Assert.Equal("Max Verstappen", reader.GetString(0));
+        Assert.Equal((short)1, reader.GetInt16(1));
+        Assert.False(reader.GetBoolean(2));
+    }
+
+    [Fact]
+    public async Task WriteBatch_SessionEvents_InsertsRows()
+    {
+        var events = new List<TelemetryEvent>
+        {
+            MakeSessionEvent(frameId: 40),
+        };
+
+        await _writer.WriteBatchAsync(events, CancellationToken.None);
+
+        await using var conn = new NpgsqlConnection(_connectionString);
+        await conn.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            "SELECT track, track_length, game_paused FROM session WHERE frame_id = 40", conn);
+        await using var reader = await cmd.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync());
+        Assert.Equal((short)3, reader.GetInt16(0));
+        Assert.Equal(5303, reader.GetInt32(1));
+        Assert.False(reader.GetBoolean(2));
+    }
+
+    [Fact]
+    public async Task WriteBatch_SessionHistoryEvents_WithNulls_InsertsRows()
+    {
+        var events = new List<TelemetryEvent>
+        {
+            MakeSessionHistoryEvent(frameId: 50, hasCompletedLaps: true),
+            MakeSessionHistoryEvent(frameId: 51, hasCompletedLaps: false),
+        };
+
+        await _writer.WriteBatchAsync(events, CancellationToken.None);
+
+        await using var conn = new NpgsqlConnection(_connectionString);
+        await conn.OpenAsync();
+
+        // Verify event with completed laps.
+        await using (var cmd1 = new NpgsqlCommand(
+            "SELECT latest_sector3_time_ms, latest_lap_valid FROM session_history WHERE frame_id = 50", conn))
+        await using (var reader1 = await cmd1.ExecuteReaderAsync())
+        {
+            Assert.True(await reader1.ReadAsync());
+            Assert.Equal(26432, reader1.GetInt32(0));
+            Assert.True(reader1.GetBoolean(1));
+        }
+
+        // Verify event without completed laps (null latest fields).
+        await using (var cmd2 = new NpgsqlCommand(
+            "SELECT latest_sector3_time_ms, latest_lap_valid FROM session_history WHERE frame_id = 51", conn))
+        await using (var reader2 = await cmd2.ExecuteReaderAsync())
+        {
+            Assert.True(await reader2.ReadAsync());
+            Assert.True(reader2.IsDBNull(0));
+            Assert.True(reader2.IsDBNull(1));
+        }
     }
 
     [Fact]
@@ -213,6 +296,38 @@ public sealed class TimescaleWriterIntegrationTests : IAsyncLifetime
         ErsHarvestedLapMguk = fromDamagePacket ? null : 500_000f,
         ErsHarvestedLapMguh = fromDamagePacket ? null : 1_000_000f,
         ErsDeployedLap = fromDamagePacket ? null : 800_000f,
+    };
+
+    private static ParticipantEvent MakeParticipantEvent(uint frameId) => new()
+    {
+        EventType = "Participant", SessionUid = "99999", Timestamp = DateTimeOffset.UtcNow,
+        FrameId = frameId, CarIndex = 0, Name = "Max Verstappen", Team = 1,
+        RaceNumber = 1, Nationality = 5, IsAiControlled = false, Driver = 10,
+        Platform = 1, IsMyTeam = false, IsTelemetryPublic = true,
+    };
+
+    private static SessionEvent MakeSessionEvent(uint frameId) => new()
+    {
+        EventType = "Session", SessionUid = "99999", Timestamp = DateTimeOffset.UtcNow,
+        FrameId = frameId, CarIndex = 255, Track = 3, SessionType = 10, Weather = 0,
+        TrackTemperature = 35, AirTemperature = 28, TotalLaps = 57, TrackLength = 5303,
+        SessionTimeLeft = 3600, SessionDuration = 7200, SafetyCarStatus = 0,
+        PitSpeedLimit = 80, Formula = 0, GamePaused = false,
+        PitStopWindowIdealLap = 20, PitStopWindowLatestLap = 25, PitStopRejoinPosition = 5,
+    };
+
+    private static SessionHistoryEvent MakeSessionHistoryEvent(uint frameId, bool hasCompletedLaps) => new()
+    {
+        EventType = "SessionHistory", SessionUid = "99999", Timestamp = DateTimeOffset.UtcNow,
+        FrameId = frameId, CarIndex = 0, NumLaps = hasCompletedLaps ? 5 : 1,
+        NumTyreStints = 1, BestLapTimeLapNum = hasCompletedLaps ? 3 : 0,
+        BestSector1LapNum = hasCompletedLaps ? 3 : 0, BestSector2LapNum = hasCompletedLaps ? 2 : 0,
+        BestSector3LapNum = hasCompletedLaps ? 3 : 0,
+        LatestLapTimeMs = hasCompletedLaps ? 85432 : null,
+        LatestSector1TimeMs = hasCompletedLaps ? 28000 : null,
+        LatestSector2TimeMs = hasCompletedLaps ? 31000 : null,
+        LatestSector3TimeMs = hasCompletedLaps ? 26432 : null,
+        LatestLapValid = hasCompletedLaps ? true : null,
     };
 
     private static string FindRepoRoot()
