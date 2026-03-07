@@ -15,6 +15,7 @@ namespace TelemetryIngester.Mapping;
 public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMapper
 {
     private readonly TelemetryOptions _options = options.Value;
+    private int? _lastForecastHash;
 
     /// <summary>
     /// Inspects the incoming packet, maps it to zero or more events, and returns them.
@@ -68,6 +69,7 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
         if (packet.TryGetSessionDataPacket(out var session))
         {
             events.Add(MapSessionData(session, header, now));
+            events.AddRange(MapWeatherForecastSamples(session, header, now));
             return events;
         }
 
@@ -311,6 +313,73 @@ public sealed class PacketMapper(IOptions<TelemetryOptions> options) : IPacketMa
             LatestSector3TimeMs = latestSector3TimeMs,
             LatestLapValid = latestLapValid,
         };
+    }
+
+    /// <summary>
+    /// Extracts weather forecast samples from a session packet, using hash-based deduplication
+    /// to suppress duplicate writes when the forecast hasn't changed (~2x/sec → only on change).
+    /// </summary>
+    internal IReadOnlyList<WeatherForecastEvent> MapWeatherForecastSamples(
+        SessionDataPacket data, PacketHeader header, DateTimeOffset timestamp)
+    {
+        var count = Math.Min(data.NumWeatherForecastSamples, (byte)64);
+        if (count == 0)
+            return [];
+
+        var hash = ComputeForecastHash(data, count);
+        if (hash == _lastForecastHash)
+            return [];
+
+        _lastForecastHash = hash;
+
+        var forecastAccuracy = (int)data.ForecastAccuracy;
+        var sessionUid = header.SessionUID.ToString();
+        var frameId = header.FrameIdentifier;
+        var events = new List<WeatherForecastEvent>(count);
+
+        for (int i = 0; i < count; i++)
+        {
+            var sample = data.WeatherForecastSamples[i];
+            events.Add(new WeatherForecastEvent
+            {
+                EventType = "WeatherForecast",
+                SessionUid = sessionUid,
+                Timestamp = timestamp,
+                FrameId = frameId,
+                CarIndex = 255,
+                ForecastSessionType = (int)sample.SessionType,
+                TimeOffset = sample.TimeOffset,
+                Weather = (int)sample.Weather,
+                TrackTemperature = sample.TrackTemperature,
+                TrackTemperatureChange = (int)sample.TrackTemperatureChange,
+                AirTemperature = sample.AirTemperature,
+                AirTemperatureChange = (int)sample.AirTemperatureChange,
+                RainPercentage = sample.RainPercentage,
+                ForecastAccuracy = forecastAccuracy,
+                SampleIndex = i,
+            });
+        }
+
+        return events;
+    }
+
+    private static int ComputeForecastHash(SessionDataPacket data, int count)
+    {
+        var hash = new HashCode();
+        hash.Add(count);
+        for (int i = 0; i < count; i++)
+        {
+            var s = data.WeatherForecastSamples[i];
+            hash.Add((int)s.SessionType);
+            hash.Add(s.TimeOffset);
+            hash.Add((int)s.Weather);
+            hash.Add(s.TrackTemperature);
+            hash.Add((int)s.TrackTemperatureChange);
+            hash.Add(s.AirTemperature);
+            hash.Add((int)s.AirTemperatureChange);
+            hash.Add(s.RainPercentage);
+        }
+        return hash.ToHashCode();
     }
 
     /// <summary>
