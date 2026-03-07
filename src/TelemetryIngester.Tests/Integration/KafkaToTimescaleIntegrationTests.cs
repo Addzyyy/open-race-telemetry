@@ -64,9 +64,11 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task ProduceAndConsume_CarTelemetryEvents_WrittenToTimescaleDb()
     {
+        await TruncateAllTablesAsync();
+
         await using var producer = CreateProducer();
         var writer = CreateWriter();
-        var consumer = CreateConsumerService(writer, batchSize: 5, flushIntervalMs: 200);
+        using var consumer = CreateConsumerService(writer, batchSize: 5, flushIntervalMs: 200);
 
         var events = new[]
         {
@@ -100,9 +102,11 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task ProduceAndConsume_MixedEventTypes_WrittenToCorrectTables()
     {
+        await TruncateAllTablesAsync();
+
         await using var producer = CreateProducer();
         var writer = CreateWriter();
-        var consumer = CreateConsumerService(writer, batchSize: 5, flushIntervalMs: 200);
+        using var consumer = CreateConsumerService(writer, batchSize: 5, flushIntervalMs: 200);
 
         await producer.ProduceAsync(MakeCarTelemetryEvent(frameId: 10));
         await producer.ProduceAsync(MakeCarTelemetryEvent(frameId: 11));
@@ -135,9 +139,11 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task ProduceAndConsume_NullableFields_PreservedThroughPipeline()
     {
+        await TruncateAllTablesAsync();
+
         await using var producer = CreateProducer();
         var writer = CreateWriter();
-        var consumer = CreateConsumerService(writer, batchSize: 5, flushIntervalMs: 200);
+        using var consumer = CreateConsumerService(writer, batchSize: 5, flushIntervalMs: 200);
 
         // From damage packet: tyre wear set, fuel/ERS null.
         await producer.ProduceAsync(MakeCarStatusEvent(frameId: 30, fromDamagePacket: true));
@@ -163,10 +169,12 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task ProduceAndConsume_PartialBatch_FlushedByTimer()
     {
+        await TruncateAllTablesAsync();
+
         await using var producer = CreateProducer();
         var writer = CreateWriter();
         // Large batch size so we rely on the time-based flush.
-        var consumer = CreateConsumerService(writer, batchSize: 1000, flushIntervalMs: 200);
+        using var consumer = CreateConsumerService(writer, batchSize: 1000, flushIntervalMs: 200);
 
         await producer.ProduceAsync(MakeCarTelemetryEvent(frameId: 50));
 
@@ -214,6 +222,15 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
     }
 
     // -- Helpers --
+
+    private async Task TruncateAllTablesAsync()
+    {
+        await using var conn = new NpgsqlConnection(_connectionString);
+        await conn.OpenAsync();
+        await using var cmd = new NpgsqlCommand(
+            "TRUNCATE car_telemetry, lap_data, car_status", conn);
+        await cmd.ExecuteNonQueryAsync();
+    }
 
     private async Task WaitForRowsAsync(string table, long expectedCount, CancellationToken ct)
     {
