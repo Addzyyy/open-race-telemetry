@@ -16,7 +16,7 @@ public sealed class KafkaConsumerService(
     ITimescaleWriter writer,
     ILogger<KafkaConsumerService> logger) : BackgroundService
 {
-    private static readonly string[] Topics = ["car-telemetry", "lap-data", "car-status", "participants", "session", "session-history", "weather-forecast"];
+    private static readonly string[] Topics = ["car-telemetry", "lap-data", "car-status", "participants", "session", "session-history", "weather-forecast", "car-motion", "final-classification"];
 
     internal static readonly TimeSpan InitialBackoff = TimeSpan.FromSeconds(1);
     internal static readonly TimeSpan MaxBackoff = TimeSpan.FromSeconds(30);

@@ -713,4 +713,145 @@ public sealed class PacketMapperTests
         Assert.Equal("Session", events[0].EventType);
         Assert.Equal("WeatherForecast", events[1].EventType);
     }
+
+    // ── CarMotion tests ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void MapCarMotionData_MapsGForceFields()
+    {
+        var mapper = CreateMapper();
+        var data = new CarMotionData
+        {
+            GForceLateral = 2.5f,
+            GForceLongitudinal = -1.8f,
+            GForceVertical = 1.0f,
+        };
+        var header = MakeHeader(sessionUid: 4444, frameId: 150, playerCarIndex: 2);
+
+        var @event = mapper.MapCarMotionData(data, header, 2, DateTimeOffset.UtcNow);
+
+        Assert.Equal("CarMotion", @event.EventType);
+        Assert.Equal("4444", @event.SessionUid);
+        Assert.Equal(150u, @event.FrameId);
+        Assert.Equal(2, @event.CarIndex);
+        Assert.Equal(2.5f, @event.GForceLateral);
+        Assert.Equal(-1.8f, @event.GForceLongitudinal);
+        Assert.Equal(1.0f, @event.GForceVertical);
+    }
+
+    [Fact]
+    public void MapPacket_Motion_PlayerCarOnly_WhenAllCarsFalse()
+    {
+        var mapper = CreateMapper(allCars: false);
+        var header = MakeHeader(playerCarIndex: 7);
+        var packetData = new MotionDataPacket { Header = header };
+        var packet = new UnionPacket(packetData);
+
+        var events = mapper.MapPacket(packet);
+
+        Assert.Single(events);
+        Assert.Equal("CarMotion", events[0].EventType);
+        Assert.Equal(7, events[0].CarIndex);
+    }
+
+    [Fact]
+    public void MapPacket_Motion_AllCars_WhenAllCarsTrue()
+    {
+        var mapper = CreateMapper(allCars: true);
+        var header = MakeHeader(playerCarIndex: 0);
+        var packetData = new MotionDataPacket { Header = header };
+        var packet = new UnionPacket(packetData);
+
+        var events = mapper.MapPacket(packet);
+
+        Assert.Equal(20, events.Count);
+        Assert.All(events, e => Assert.Equal("CarMotion", e.EventType));
+    }
+
+    // ── FinalClassification tests ──────────────────────────────────────────────
+
+    [Fact]
+    public void MapFinalClassificationData_MapsAllFields()
+    {
+        var mapper = CreateMapper();
+
+        var tyreStintsVisual = new Array8<VisualCompound>();
+        tyreStintsVisual[0] = VisualCompound.F1Soft;
+        tyreStintsVisual[1] = VisualCompound.F1Hard;
+
+        var tyreStintsEndLaps = new Array8<byte>();
+        tyreStintsEndLaps[0] = 15;
+        tyreStintsEndLaps[1] = 52;
+
+        var data = new FinalClassificationData
+        {
+            Position = 1,
+            NumLaps = 52,
+            GridPosition = 3,
+            Points = 25,
+            NumPitStops = 1,
+            ResultStatus = ResultStatus.Finished,
+            ResultReason = ResultReason.Invalid,
+            BestLapTimeInMS = 90500,
+            TotalRaceTime = 5432.123,
+            PenaltiesTime = 0,
+            NumPenalties = 0,
+            NumTyreStints = 2,
+            TyreStintsVisual = tyreStintsVisual,
+            TyreStintsEndLaps = tyreStintsEndLaps,
+        };
+        var header = MakeHeader(sessionUid: 6666, frameId: 500, playerCarIndex: 0);
+
+        var @event = mapper.MapFinalClassificationData(data, header, 0, DateTimeOffset.UtcNow);
+
+        Assert.Equal("FinalClassification", @event.EventType);
+        Assert.Equal("6666", @event.SessionUid);
+        Assert.Equal(500u, @event.FrameId);
+        Assert.Equal(0, @event.CarIndex);
+        Assert.Equal(1, @event.Position);
+        Assert.Equal(52, @event.NumLaps);
+        Assert.Equal(3, @event.GridPosition);
+        Assert.Equal(25, @event.Points);
+        Assert.Equal(1, @event.NumPitStops);
+        Assert.Equal((int)ResultStatus.Finished, @event.ResultStatus);
+        Assert.Equal((int)ResultReason.Invalid, @event.ResultReason);
+        Assert.Equal(90500, @event.BestLapTimeMs);
+        Assert.Equal(5432.123, @event.TotalRaceTime);
+        Assert.Equal(0, @event.PenaltiesTime);
+        Assert.Equal(0, @event.NumPenalties);
+        Assert.Equal(2, @event.NumTyreStints);
+        Assert.Contains(",", @event.TyreStintsVisual);
+        Assert.Contains(",", @event.TyreStintsEndLaps);
+        Assert.Equal("15,52", @event.TyreStintsEndLaps);
+    }
+
+    [Fact]
+    public void MapPacket_FinalClassification_AlwaysEmitsAllCars()
+    {
+        var mapper = CreateMapper(allCars: false);
+        var header = MakeHeader(playerCarIndex: 3);
+        var packetData = new FinalClassificationDataPacket { Header = header, NumCars = 10 };
+        var packet = new UnionPacket(packetData);
+
+        var events = mapper.MapPacket(packet);
+
+        // FinalClassification always emits all cars regardless of AllCars setting
+        Assert.Equal(10, events.Count);
+        Assert.All(events, e => Assert.Equal("FinalClassification", e.EventType));
+        for (byte i = 0; i < 10; i++)
+            Assert.Equal(i, events[i].CarIndex);
+    }
+
+    [Fact]
+    public void MapFinalClassificationData_ZeroStints_EmptyStrings()
+    {
+        var mapper = CreateMapper();
+        var data = new FinalClassificationData { NumTyreStints = 0 };
+        var header = MakeHeader();
+
+        var @event = mapper.MapFinalClassificationData(data, header, 0, DateTimeOffset.UtcNow);
+
+        Assert.Equal("", @event.TyreStintsVisual);
+        Assert.Equal("", @event.TyreStintsEndLaps);
+    }
 }

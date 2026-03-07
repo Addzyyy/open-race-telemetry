@@ -1,0 +1,910 @@
+{
+  "uid": "car-telemetry-pw",
+  "title": "Race Engineer",
+  "tags": ["f1", "telemetry", "pit-wall"],
+  "timezone": "browser",
+  "refresh": "1s",
+  "liveNow": true,
+  "schemaVersion": 39,
+  "graphTooltip": 2,
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "fiscalYearStartMonth": 0,
+  "editable": true,
+  "links": [
+    {
+      "title": "Live Timing",
+      "url": "/d/live-timing-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Health",
+      "url": "/d/tyre-health-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Analysis",
+      "url": "/d/driver-analysis-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy",
+      "url": "/d/strategy-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Debrief",
+      "url": "/d/debrief-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "label": "Session",
+        "type": "query",
+        "datasource": {
+          "type": "postgres",
+          "uid": "timescaledb"
+        },
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
+        "refresh": 2,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false
+      },
+      {
+        "name": "car_index",
+        "label": "Car",
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": {
+          "selected": true,
+          "text": "0",
+          "value": "0"
+        },
+        "includeAll": false,
+        "multi": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Speed",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "velocitykmh",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, speed FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Gear",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "value"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "text": "R",
+                  "index": 0
+                },
+                "0": {
+                  "text": "N",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, gear FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "RPM",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 15000,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10000 },
+              { "color": "red", "value": 11000 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, engine_rpm FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "DRS",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "\u2014",
+                  "color": "dark-gray",
+                  "index": 0
+                },
+                "1": {
+                  "text": "OPEN",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "dark-gray", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, drs::int FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Lap",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, current_lap_num FROM lap_data WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Position",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, car_position FROM lap_data WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Last Lap",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, latest_lap_time_ms / 1000.0 AS \"Last Lap\" FROM session_history WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) AND latest_lap_time_ms IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Delta to Best",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 21, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT sh.time, (ld.current_lap_time_ms - best.best_time) / 1000.0 AS delta FROM lap_data ld JOIN LATERAL (SELECT latest_lap_time_ms AS best_time FROM session_history WHERE session_uid = '$session' AND car_index = $car_index AND latest_lap_time_ms IS NOT NULL ORDER BY latest_lap_time_ms ASC LIMIT 1) best ON true JOIN session_history sh ON sh.session_uid = ld.session_uid AND sh.car_index = ld.car_index WHERE ld.session_uid = '$session' AND ld.car_index = $car_index AND $__timeFilter(ld.time) ORDER BY ld.time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Speed Trace",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "velocitykmh",
+          "min": 0,
+          "max": 350,
+          "color": {
+            "fixedColor": "#FFFFFF",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, speed FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Throttle & Brake",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "throttle" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "green", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "brake" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "red", "mode": "fixed" }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, throttle, brake FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Steering",
+      "type": "timeseries",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 16 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "min": -1,
+          "max": 1,
+          "color": {
+            "fixedColor": "#FFFF00",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, steer FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Gear Trace",
+      "type": "timeseries",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 21 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "min": 0,
+          "max": 8,
+          "color": {
+            "fixedColor": "#00BFFF",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, gear FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "RPM Trace",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 26 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "area" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10000 },
+              { "color": "red", "value": 11000 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, engine_rpm FROM car_telemetry WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "ERS Energy",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 26 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 20 },
+              { "color": "green", "value": 50 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, ers_store_energy / 4000000.0 * 100 AS \"ERS %\" FROM car_status WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) AND ers_store_energy IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Fuel",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 26 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Fuel (kg)" },
+            "properties": [
+              { "id": "unit", "value": "kg" },
+              { "id": "decimals", "value": 1 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Fuel Laps" },
+            "properties": [
+              { "id": "unit", "value": "laps" },
+              { "id": "decimals", "value": 1 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, fuel_in_tank AS \"Fuel (kg)\" FROM car_status WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) AND fuel_in_tank IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT time, fuel_remaining_laps AS \"Fuel Laps\" FROM car_status WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) AND fuel_remaining_laps IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "refId": "B"
+        }
+      ]
+    }
+  ]
+}

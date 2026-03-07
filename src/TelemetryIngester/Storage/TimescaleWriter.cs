@@ -25,6 +25,8 @@ public sealed class TimescaleWriter(
         var session = new List<SessionEvent>();
         var sessionHistory = new List<SessionHistoryEvent>();
         var weatherForecast = new List<WeatherForecastEvent>();
+        var carMotion = new List<CarMotionEvent>();
+        var finalClassification = new List<FinalClassificationEvent>();
 
         foreach (var e in events)
         {
@@ -37,6 +39,8 @@ public sealed class TimescaleWriter(
                 case SessionEvent se: session.Add(se); break;
                 case SessionHistoryEvent she: sessionHistory.Add(she); break;
                 case WeatherForecastEvent wfe: weatherForecast.Add(wfe); break;
+                case CarMotionEvent cme: carMotion.Add(cme); break;
+                case FinalClassificationEvent fce: finalClassification.Add(fce); break;
             }
         }
 
@@ -50,9 +54,11 @@ public sealed class TimescaleWriter(
         if (session.Count > 0) await WriteSessionAsync(conn, session, ct);
         if (sessionHistory.Count > 0) await WriteSessionHistoryAsync(conn, sessionHistory, ct);
         if (weatherForecast.Count > 0) await WriteWeatherForecastAsync(conn, weatherForecast, ct);
+        if (carMotion.Count > 0) await WriteCarMotionAsync(conn, carMotion, ct);
+        if (finalClassification.Count > 0) await WriteFinalClassificationAsync(conn, finalClassification, ct);
 
-        logger.LogDebug("Wrote batch of {Count} events ({Telemetry} telemetry, {Lap} lap, {Status} status, {Participants} participants, {Session} session, {History} history, {Forecast} forecast)",
-            events.Count, carTelemetry.Count, lapData.Count, carStatus.Count, participants.Count, session.Count, sessionHistory.Count, weatherForecast.Count);
+        logger.LogDebug("Wrote batch of {Count} events ({Telemetry} telemetry, {Lap} lap, {Status} status, {Participants} participants, {Session} session, {History} history, {Forecast} forecast, {Motion} motion, {Classification} classification)",
+            events.Count, carTelemetry.Count, lapData.Count, carStatus.Count, participants.Count, session.Count, sessionHistory.Count, weatherForecast.Count, carMotion.Count, finalClassification.Count);
     }
 
     private static async Task WriteCarTelemetryAsync(NpgsqlConnection conn, List<CarTelemetryEvent> events, CancellationToken ct)
@@ -295,6 +301,64 @@ public sealed class TimescaleWriter(
             await writer.WriteAsync((short)e.RainPercentage, NpgsqlDbType.Smallint, ct);
             await writer.WriteAsync((short)e.ForecastAccuracy, NpgsqlDbType.Smallint, ct);
             await writer.WriteAsync((short)e.SampleIndex, NpgsqlDbType.Smallint, ct);
+        }
+
+        await writer.CompleteAsync(ct);
+    }
+
+    private static async Task WriteCarMotionAsync(NpgsqlConnection conn, List<CarMotionEvent> events, CancellationToken ct)
+    {
+        await using var writer = await conn.BeginBinaryImportAsync(
+            "COPY car_motion (time, session_uid, frame_id, car_index, " +
+            "g_force_lateral, g_force_longitudinal, g_force_vertical) " +
+            "FROM STDIN (FORMAT BINARY)", ct);
+
+        foreach (var e in events)
+        {
+            await writer.StartRowAsync(ct);
+            await writer.WriteAsync(e.Timestamp, NpgsqlDbType.TimestampTz, ct);
+            await writer.WriteAsync(e.SessionUid, NpgsqlDbType.Text, ct);
+            await writer.WriteAsync((int)e.FrameId, NpgsqlDbType.Integer, ct);
+            await writer.WriteAsync((short)e.CarIndex, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync(e.GForceLateral, NpgsqlDbType.Real, ct);
+            await writer.WriteAsync(e.GForceLongitudinal, NpgsqlDbType.Real, ct);
+            await writer.WriteAsync(e.GForceVertical, NpgsqlDbType.Real, ct);
+        }
+
+        await writer.CompleteAsync(ct);
+    }
+
+    private static async Task WriteFinalClassificationAsync(NpgsqlConnection conn, List<FinalClassificationEvent> events, CancellationToken ct)
+    {
+        await using var writer = await conn.BeginBinaryImportAsync(
+            "COPY final_classification (time, session_uid, frame_id, car_index, " +
+            "position, num_laps, grid_position, points, num_pit_stops, " +
+            "result_status, result_reason, best_lap_time_ms, total_race_time, " +
+            "penalties_time, num_penalties, num_tyre_stints, " +
+            "tyre_stints_visual, tyre_stints_end_laps) " +
+            "FROM STDIN (FORMAT BINARY)", ct);
+
+        foreach (var e in events)
+        {
+            await writer.StartRowAsync(ct);
+            await writer.WriteAsync(e.Timestamp, NpgsqlDbType.TimestampTz, ct);
+            await writer.WriteAsync(e.SessionUid, NpgsqlDbType.Text, ct);
+            await writer.WriteAsync((int)e.FrameId, NpgsqlDbType.Integer, ct);
+            await writer.WriteAsync((short)e.CarIndex, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.Position, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.NumLaps, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.GridPosition, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.Points, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.NumPitStops, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.ResultStatus, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.ResultReason, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((int)e.BestLapTimeMs, NpgsqlDbType.Integer, ct);
+            await writer.WriteAsync(e.TotalRaceTime, NpgsqlDbType.Double, ct);
+            await writer.WriteAsync((short)e.PenaltiesTime, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.NumPenalties, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.NumTyreStints, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync(e.TyreStintsVisual, NpgsqlDbType.Text, ct);
+            await writer.WriteAsync(e.TyreStintsEndLaps, NpgsqlDbType.Text, ct);
         }
 
         await writer.CompleteAsync(ct);

@@ -1,0 +1,633 @@
+{
+  "uid": "live-timing-pw",
+  "title": "Live Timing",
+  "tags": ["f1", "telemetry", "pit-wall"],
+  "refresh": "1s",
+  "schemaVersion": 39,
+  "graphTooltip": 2,
+  "time": { "from": "now-5m", "to": "now" },
+  "liveNow": true,
+  "fiscalYearStartMonth": 0,
+  "timezone": "browser",
+  "links": [
+    {
+      "title": "Race Engineer",
+      "url": "/d/car-telemetry-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Health",
+      "url": "/d/tyre-health-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Analysis",
+      "url": "/d/driver-analysis-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy",
+      "url": "/d/strategy-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Debrief",
+      "url": "/d/debrief-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "label": "Session",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
+        "refresh": 2,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "car_index",
+        "label": "Car",
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": { "selected": true, "text": "0", "value": "0" },
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Session Info",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 3 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Track" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": {
+                    "0":  { "text": "Melbourne" },
+                    "1":  { "text": "Paul Ricard" },
+                    "2":  { "text": "Shanghai" },
+                    "3":  { "text": "Bahrain" },
+                    "4":  { "text": "Catalunya" },
+                    "5":  { "text": "Monaco" },
+                    "6":  { "text": "Montreal" },
+                    "7":  { "text": "Silverstone" },
+                    "8":  { "text": "Hockenheim" },
+                    "9":  { "text": "Hungaroring" },
+                    "10": { "text": "Spa" },
+                    "11": { "text": "Monza" },
+                    "12": { "text": "Singapore" },
+                    "13": { "text": "Suzuka" },
+                    "14": { "text": "Abu Dhabi" },
+                    "15": { "text": "COTA" },
+                    "16": { "text": "Interlagos" },
+                    "17": { "text": "Red Bull Ring" },
+                    "18": { "text": "Sochi" },
+                    "19": { "text": "Mexico City" },
+                    "20": { "text": "Baku" },
+                    "21": { "text": "Sakhir Short" },
+                    "22": { "text": "Silverstone Short" },
+                    "23": { "text": "COTA Short" },
+                    "24": { "text": "Suzuka Short" },
+                    "25": { "text": "Hanoi" },
+                    "26": { "text": "Zandvoort" },
+                    "27": { "text": "Imola" },
+                    "28": { "text": "Portimao" },
+                    "29": { "text": "Jeddah" },
+                    "30": { "text": "Miami" },
+                    "31": { "text": "Las Vegas" },
+                    "32": { "text": "Losail" },
+                    "33": { "text": "Lusail Short" }
+                  }}
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Session" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": {
+                    "0":  { "text": "Unknown" },
+                    "1":  { "text": "P1" },
+                    "2":  { "text": "P2" },
+                    "3":  { "text": "P3" },
+                    "4":  { "text": "Short Practice" },
+                    "5":  { "text": "Q1" },
+                    "6":  { "text": "Q2" },
+                    "7":  { "text": "Q3" },
+                    "8":  { "text": "Short Quali" },
+                    "9":  { "text": "OSQ" },
+                    "10": { "text": "Race" },
+                    "11": { "text": "Race 2" },
+                    "12": { "text": "Race 3" },
+                    "13": { "text": "Time Trial" }
+                  }}
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT time, track AS \"Track\" FROM session WHERE session_uid = '$session' ORDER BY time DESC LIMIT 1"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT time, session_type AS \"Session\" FROM session WHERE session_uid = '$session' ORDER BY time DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Time Remaining",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 300 },
+              { "color": "green", "value": 600 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT time, session_time_left AS \"Time Left\" FROM session WHERE session_uid = '$session' ORDER BY time DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Weather & Track Conditions",
+      "type": "stat",
+      "gridPos": { "x": 10, "y": 0, "w": 6, "h": 3 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Weather" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": {
+                    "0": { "text": "Clear" },
+                    "1": { "text": "Light Cloud" },
+                    "2": { "text": "Overcast" },
+                    "3": { "text": "Light Rain" },
+                    "4": { "text": "Heavy Rain" },
+                    "5": { "text": "Storm" }
+                  }}
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Air" },
+            "properties": [
+              { "id": "unit", "value": "celsius" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Track" },
+            "properties": [
+              { "id": "unit", "value": "celsius" }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT time, weather AS \"Weather\", air_temperature AS \"Air\", track_temperature AS \"Track\" FROM session WHERE session_uid = '$session' ORDER BY time DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Safety Car",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "\u2014", "color": "dark-gray", "index": 0 },
+                "1": { "text": "SAFETY CAR", "color": "yellow", "index": 1 },
+                "2": { "text": "VSC", "color": "yellow", "index": 2 },
+                "3": { "text": "RED FLAG", "color": "red", "index": 3 }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "dark-gray", "value": null }]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT time, safety_car_status FROM session WHERE session_uid = '$session' ORDER BY time DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Lap / Total",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.time, ld.current_lap_num || ' / ' || s.total_laps AS \"Lap\" FROM lap_data ld JOIN LATERAL (SELECT total_laps FROM session WHERE session_uid = '$session' ORDER BY time DESC LIMIT 1) s ON true WHERE ld.session_uid = '$session' AND ld.car_index = $car_index ORDER BY ld.time DESC LIMIT 1"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Timing Tower",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 3, "w": 17, "h": 12 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "footer": { "show": false, "reducer": ["sum"], "enablePagination": false },
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Pos", "desc": false }]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Tyre" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": {
+                    "16": { "text": "S", "color": "red", "index": 0 },
+                    "17": { "text": "M", "color": "yellow", "index": 1 },
+                    "18": { "text": "H", "color": "dark-gray", "index": 2 },
+                    "7":  { "text": "I", "color": "green", "index": 3 },
+                    "8":  { "text": "W", "color": "blue", "index": 4 }
+                  }}
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Last" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Best" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S1" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S2" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S3" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ld.car_position AS \"Pos\",\n  p.name AS \"Driver\",\n  p.race_number AS \"#\",\n  ld.current_lap_num AS \"Lap\",\n  sh.latest_lap_time_ms / 1000.0 AS \"Last\",\n  CASE WHEN sh.best_lap_time_lap_num > 0\n    THEN (SELECT lh.latest_lap_time_ms FROM session_history lh\n          WHERE lh.session_uid = '$session' AND lh.car_index = ld.car_index\n          ORDER BY lh.latest_lap_time_ms ASC NULLS LAST LIMIT 1) / 1000.0\n    ELSE NULL END AS \"Best\",\n  sh.latest_sector1_time_ms / 1000.0 AS \"S1\",\n  sh.latest_sector2_time_ms / 1000.0 AS \"S2\",\n  sh.latest_sector3_time_ms / 1000.0 AS \"S3\",\n  cs.visual_tyre_compound AS \"Tyre\",\n  cs.tyres_age_laps AS \"Age\",\n  ld.num_pit_stops AS \"Pits\"\nFROM lap_data ld\nJOIN LATERAL (\n  SELECT name, race_number FROM participants\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n  ORDER BY time DESC LIMIT 1\n) p ON true\nJOIN LATERAL (\n  SELECT latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms,\n         latest_sector3_time_ms, best_lap_time_lap_num\n  FROM session_history\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n  ORDER BY time DESC LIMIT 1\n) sh ON true\nJOIN LATERAL (\n  SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n  WHERE session_uid = '$session' AND car_index = ld.car_index\n    AND visual_tyre_compound IS NOT NULL\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE ld.session_uid = '$session'\n  AND ld.time = (SELECT MAX(time) FROM lap_data WHERE session_uid = '$session' AND car_index = ld.car_index)\nORDER BY ld.car_position ASC"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Lap History",
+      "type": "table",
+      "gridPos": { "x": 17, "y": 3, "w": 7, "h": 12 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "footer": { "show": false, "reducer": ["sum"], "enablePagination": false },
+        "showHeader": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "S1" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S2" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S3" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Total" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT\n  ROW_NUMBER() OVER (ORDER BY sh.time DESC) AS \"Lap\",\n  sh.latest_sector1_time_ms / 1000.0 AS \"S1\",\n  sh.latest_sector2_time_ms / 1000.0 AS \"S2\",\n  sh.latest_sector3_time_ms / 1000.0 AS \"S3\",\n  sh.latest_lap_time_ms / 1000.0 AS \"Total\",\n  sh.latest_lap_valid AS \"Valid\"\nFROM session_history sh\nWHERE sh.session_uid = '$session'\n  AND sh.car_index = $car_index\n  AND sh.latest_lap_time_ms IS NOT NULL\n  AND $__timeFilter(sh.time)\nORDER BY sh.time DESC\nLIMIT 10"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Position Chart",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 15, "w": 12, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisPlacement": "auto",
+            "scaleDistribution": { "type": "linear" }
+          },
+          "color": { "mode": "fixed", "fixedColor": "#00FF00" },
+          "decimals": 0,
+          "min": 20,
+          "max": 1,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT time, car_position AS \"Position\" FROM lap_data WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) ORDER BY time"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Gap Trend",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 15, "w": 12, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "options": {
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisPlacement": "auto"
+          },
+          "color": { "mode": "fixed", "fixedColor": "#FFD700" },
+          "unit": "s",
+          "decimals": 3,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT sh.time, sh.latest_lap_time_ms / 1000.0 AS \"Lap Time\" FROM session_history sh WHERE sh.session_uid = '$session' AND sh.car_index = $car_index AND sh.latest_lap_time_ms IS NOT NULL AND $__timeFilter(sh.time) ORDER BY sh.time"
+        }
+      ]
+    }
+  ]
+}
