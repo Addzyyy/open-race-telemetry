@@ -568,10 +568,12 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [],
+          "fields": "",
+          "values": true
         },
         "graphMode": "none",
-        "textMode": "auto",
+        "textMode": "value",
         "colorMode": "value"
       }
     },
@@ -805,10 +807,12 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [],
+          "fields": "",
+          "values": true
         },
         "graphMode": "none",
-        "textMode": "auto",
+        "textMode": "value",
         "colorMode": "value"
       }
     },

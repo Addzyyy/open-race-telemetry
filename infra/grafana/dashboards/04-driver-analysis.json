@@ -95,13 +95,6 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "axisCenteredZero": true,
-            "show": "points",
-            "pointSize": { "fixed": 3 }
-          },
-          "min": -5,
-          "max": 5,
           "color": {
             "mode": "fixed",
             "fixedColor": "#00FF00"
@@ -110,16 +103,9 @@
         "overrides": []
       },
       "options": {
-        "seriesMapping": "manual",
-        "series": [
-          {
-            "frame": { "matcher": { "id": "byIndex", "options": 0 } },
-            "x": { "matcher": { "id": "byName", "options": "x" } },
-            "y": { "matcher": { "id": "byName", "options": "y" } }
-          }
-        ],
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false }
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single" },
+        "legend": { "showLegend": false }
       },
       "targets": [
         {
@@ -127,7 +113,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT g_force_lateral AS x, g_force_longitudinal AS y FROM car_motion WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1800",
+          "rawSql": "SELECT g_force_lateral AS \"Lateral G\", g_force_longitudinal AS \"Longitudinal G\" FROM car_motion WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1800",
           "refId": "A"
         }
       ]
@@ -521,39 +507,14 @@
           "color": {
             "fixedColor": "#FF0000",
             "mode": "fixed"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "show": "points",
-            "pointSize": { "fixed": 2 }
           }
         },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "x" },
-            "properties": [
-              { "id": "custom.axisLabel", "value": "Speed (km/h)" }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "y" },
-            "properties": [
-              { "id": "custom.axisLabel", "value": "Brake Pressure" }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "options": {
-        "seriesMapping": "manual",
-        "series": [
-          {
-            "frame": { "matcher": { "id": "byIndex", "options": 0 } },
-            "x": { "matcher": { "id": "byName", "options": "x" } },
-            "y": { "matcher": { "id": "byName", "options": "y" } }
-          }
-        ],
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false }
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single" },
+        "legend": { "showLegend": false }
       },
       "targets": [
         {
@@ -561,7 +522,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT speed AS x, brake AS y FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND brake > 0.1 AND $__timeFilter(time) ORDER BY time DESC LIMIT 2000",
+          "rawSql": "SELECT speed AS \"Speed\", brake AS \"Brake\" FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND brake > 0.1 AND $__timeFilter(time) ORDER BY time DESC LIMIT 2000",
           "refId": "A"
         }
       ]

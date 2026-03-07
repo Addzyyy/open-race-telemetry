@@ -415,12 +415,12 @@
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "textMode": "auto",
+        "textMode": "value",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [],
           "fields": "",
-          "values": false
+          "values": true
         }
       },
       "targets": [

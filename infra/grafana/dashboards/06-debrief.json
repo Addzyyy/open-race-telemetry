@@ -212,12 +212,12 @@
       ],
       "options": {
         "graphMode": "none",
-        "textMode": "auto",
+        "textMode": "value",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [],
           "fields": "",
-          "values": false
+          "values": true
         },
         "orientation": "auto"
       },
@@ -252,12 +252,12 @@
       ],
       "options": {
         "graphMode": "none",
-        "textMode": "auto",
+        "textMode": "value",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [],
           "fields": "",
-          "values": false
+          "values": true
         },
         "orientation": "auto"
       },
