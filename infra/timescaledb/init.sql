@@ -163,3 +163,26 @@ SELECT create_hypertable('session_history', 'time');
 
 CREATE INDEX idx_session_history_session
     ON session_history (session_uid, car_index, time DESC);
+
+-- Weather forecast hypertable
+CREATE TABLE IF NOT EXISTS weather_forecast (
+    time                     TIMESTAMPTZ NOT NULL,
+    session_uid              TEXT NOT NULL,
+    frame_id                 INTEGER NOT NULL,
+    car_index                SMALLINT NOT NULL,
+    forecast_session_type    SMALLINT NOT NULL,
+    time_offset              SMALLINT NOT NULL,
+    weather                  SMALLINT NOT NULL,
+    track_temperature        SMALLINT NOT NULL,
+    track_temperature_change SMALLINT NOT NULL,
+    air_temperature          SMALLINT NOT NULL,
+    air_temperature_change   SMALLINT NOT NULL,
+    rain_percentage          SMALLINT NOT NULL,
+    forecast_accuracy        SMALLINT NOT NULL,
+    sample_index             SMALLINT NOT NULL
+);
+
+SELECT create_hypertable('weather_forecast', 'time');
+
+CREATE INDEX idx_weather_forecast_session
+    ON weather_forecast (session_uid, time DESC);

@@ -40,8 +40,9 @@ public sealed class KafkaProducer : IKafkaProducer
             "CarStatus"      => "car-status",
             "Participant"    => "participants",
             "Session"        => "session",
-            "SessionHistory" => "session-history",
-            _                => null,
+            "SessionHistory"    => "session-history",
+            "WeatherForecast"   => "weather-forecast",
+            _                   => null,
         };
 
         if (topic is null)

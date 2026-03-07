@@ -24,6 +24,7 @@ public sealed class TimescaleWriter(
         var participants = new List<ParticipantEvent>();
         var session = new List<SessionEvent>();
         var sessionHistory = new List<SessionHistoryEvent>();
+        var weatherForecast = new List<WeatherForecastEvent>();
 
         foreach (var e in events)
         {
@@ -35,6 +36,7 @@ public sealed class TimescaleWriter(
                 case ParticipantEvent pe: participants.Add(pe); break;
                 case SessionEvent se: session.Add(se); break;
                 case SessionHistoryEvent she: sessionHistory.Add(she); break;
+                case WeatherForecastEvent wfe: weatherForecast.Add(wfe); break;
             }
         }
 
@@ -47,9 +49,10 @@ public sealed class TimescaleWriter(
         if (participants.Count > 0) await WriteParticipantsAsync(conn, participants, ct);
         if (session.Count > 0) await WriteSessionAsync(conn, session, ct);
         if (sessionHistory.Count > 0) await WriteSessionHistoryAsync(conn, sessionHistory, ct);
+        if (weatherForecast.Count > 0) await WriteWeatherForecastAsync(conn, weatherForecast, ct);
 
-        logger.LogDebug("Wrote batch of {Count} events ({Telemetry} telemetry, {Lap} lap, {Status} status, {Participants} participants, {Session} session, {History} history)",
-            events.Count, carTelemetry.Count, lapData.Count, carStatus.Count, participants.Count, session.Count, sessionHistory.Count);
+        logger.LogDebug("Wrote batch of {Count} events ({Telemetry} telemetry, {Lap} lap, {Status} status, {Participants} participants, {Session} session, {History} history, {Forecast} forecast)",
+            events.Count, carTelemetry.Count, lapData.Count, carStatus.Count, participants.Count, session.Count, sessionHistory.Count, weatherForecast.Count);
     }
 
     private static async Task WriteCarTelemetryAsync(NpgsqlConnection conn, List<CarTelemetryEvent> events, CancellationToken ct)
@@ -262,6 +265,36 @@ public sealed class TimescaleWriter(
             await WriteNullableIntAsync(writer, e.LatestSector2TimeMs, NpgsqlDbType.Integer, ct);
             await WriteNullableIntAsync(writer, e.LatestSector3TimeMs, NpgsqlDbType.Integer, ct);
             await WriteNullableBoolAsync(writer, e.LatestLapValid, ct);
+        }
+
+        await writer.CompleteAsync(ct);
+    }
+
+    private static async Task WriteWeatherForecastAsync(NpgsqlConnection conn, List<WeatherForecastEvent> events, CancellationToken ct)
+    {
+        await using var writer = await conn.BeginBinaryImportAsync(
+            "COPY weather_forecast (time, session_uid, frame_id, car_index, " +
+            "forecast_session_type, time_offset, weather, track_temperature, track_temperature_change, " +
+            "air_temperature, air_temperature_change, rain_percentage, forecast_accuracy, sample_index) " +
+            "FROM STDIN (FORMAT BINARY)", ct);
+
+        foreach (var e in events)
+        {
+            await writer.StartRowAsync(ct);
+            await writer.WriteAsync(e.Timestamp, NpgsqlDbType.TimestampTz, ct);
+            await writer.WriteAsync(e.SessionUid, NpgsqlDbType.Text, ct);
+            await writer.WriteAsync((int)e.FrameId, NpgsqlDbType.Integer, ct);
+            await writer.WriteAsync((short)e.CarIndex, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.ForecastSessionType, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.TimeOffset, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.Weather, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.TrackTemperature, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.TrackTemperatureChange, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.AirTemperature, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.AirTemperatureChange, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.RainPercentage, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.ForecastAccuracy, NpgsqlDbType.Smallint, ct);
+            await writer.WriteAsync((short)e.SampleIndex, NpgsqlDbType.Smallint, ct);
         }
 
         await writer.CompleteAsync(ct);
