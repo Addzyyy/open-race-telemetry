@@ -54,6 +54,9 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
             new TopicSpecification { Name = "participants", NumPartitions = 1, ReplicationFactor = 1 },
             new TopicSpecification { Name = "session", NumPartitions = 1, ReplicationFactor = 1 },
             new TopicSpecification { Name = "session-history", NumPartitions = 1, ReplicationFactor = 1 },
+            new TopicSpecification { Name = "weather-forecast", NumPartitions = 1, ReplicationFactor = 1 },
+            new TopicSpecification { Name = "car-motion", NumPartitions = 1, ReplicationFactor = 1 },
+            new TopicSpecification { Name = "final-classification", NumPartitions = 1, ReplicationFactor = 1 },
         ]);
     }
 
@@ -267,7 +270,7 @@ public sealed class KafkaToTimescaleIntegrationTests : IAsyncLifetime
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync();
         await using var cmd = new NpgsqlCommand(
-            "TRUNCATE car_telemetry, lap_data, car_status, participants, session, session_history", conn);
+            "TRUNCATE car_telemetry, lap_data, car_status, participants, session, session_history, weather_forecast, car_motion, final_classification", conn);
         await cmd.ExecuteNonQueryAsync();
     }
 
