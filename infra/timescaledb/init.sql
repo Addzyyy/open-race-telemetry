@@ -186,3 +186,46 @@ SELECT create_hypertable('weather_forecast', 'time');
 
 CREATE INDEX idx_weather_forecast_session
     ON weather_forecast (session_uid, time DESC);
+
+-- Car motion (G-force) hypertable
+CREATE TABLE IF NOT EXISTS car_motion (
+    time                    TIMESTAMPTZ NOT NULL,
+    session_uid             TEXT NOT NULL,
+    frame_id                INTEGER NOT NULL,
+    car_index               SMALLINT NOT NULL,
+    g_force_lateral         REAL,
+    g_force_longitudinal    REAL,
+    g_force_vertical        REAL
+);
+
+SELECT create_hypertable('car_motion', 'time', if_not_exists => TRUE);
+
+CREATE INDEX IF NOT EXISTS idx_car_motion_session
+    ON car_motion (session_uid, car_index, time DESC);
+
+-- Final classification hypertable
+CREATE TABLE IF NOT EXISTS final_classification (
+    time                    TIMESTAMPTZ NOT NULL,
+    session_uid             TEXT NOT NULL,
+    frame_id                INTEGER NOT NULL,
+    car_index               SMALLINT NOT NULL,
+    position                SMALLINT,
+    num_laps                SMALLINT,
+    grid_position           SMALLINT,
+    points                  SMALLINT,
+    num_pit_stops           SMALLINT,
+    result_status           SMALLINT,
+    result_reason           SMALLINT,
+    best_lap_time_ms        INTEGER,
+    total_race_time         DOUBLE PRECISION,
+    penalties_time          SMALLINT,
+    num_penalties           SMALLINT,
+    num_tyre_stints         SMALLINT,
+    tyre_stints_visual      TEXT,
+    tyre_stints_end_laps    TEXT
+);
+
+SELECT create_hypertable('final_classification', 'time', if_not_exists => TRUE);
+
+CREATE INDEX IF NOT EXISTS idx_final_classification_session
+    ON final_classification (session_uid, car_index, time DESC);
