@@ -38,6 +38,7 @@ services:
         /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --topic participants --partitions 1 --replication-factor 1 --bootstrap-server kafka:29092
         /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --topic session --partitions 1 --replication-factor 1 --bootstrap-server kafka:29092
         /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --topic session-history --partitions 1 --replication-factor 1 --bootstrap-server kafka:29092
+        /opt/kafka/bin/kafka-topics.sh --create --if-not-exists --topic weather-forecast --partitions 1 --replication-factor 1 --bootstrap-server kafka:29092
         echo "All topics created."
     restart: "no"
     networks:

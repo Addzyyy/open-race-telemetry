@@ -466,4 +466,251 @@ public sealed class PacketMapperTests
         Assert.Single(eventsAll);
         Assert.Equal("SessionHistory", eventsAll[0].EventType);
     }
+
+    // ── WeatherForecast tests ──────────────────────────────────────────────────
+
+    [Fact]
+    public void MapWeatherForecastSamples_MapsAllFields()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader(sessionUid: 1234, frameId: 77, playerCarIndex: 0);
+        var timestamp = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero);
+
+        var samples = new Array64<WeatherForecastSample>();
+        samples[0] = new WeatherForecastSample
+        {
+            SessionType = SessionType.Race,
+            TimeOffset = 10,
+            Weather = Weather.LightRain,
+            TrackTemperature = 32,
+            TrackTemperatureChange = TemperatureChange.Up,
+            AirTemperature = 25,
+            AirTemperatureChange = TemperatureChange.Down,
+            RainPercentage = 60,
+        };
+        samples[1] = new WeatherForecastSample
+        {
+            SessionType = SessionType.Race,
+            TimeOffset = 20,
+            Weather = Weather.HeavyRain,
+            TrackTemperature = 30,
+            TrackTemperatureChange = TemperatureChange.NoChange,
+            AirTemperature = 22,
+            AirTemperatureChange = TemperatureChange.NoChange,
+            RainPercentage = 90,
+        };
+
+        var data = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 2,
+            WeatherForecastSamples = samples,
+            ForecastAccuracy = ForecastAccuracy.Approximate,
+        };
+
+        var events = mapper.MapWeatherForecastSamples(data, header, timestamp);
+
+        Assert.Equal(2, events.Count);
+
+        var first = events[0];
+        Assert.Equal("WeatherForecast", first.EventType);
+        Assert.Equal("1234", first.SessionUid);
+        Assert.Equal(77u, first.FrameId);
+        Assert.Equal(255, first.CarIndex);
+        Assert.Equal(timestamp, first.Timestamp);
+        Assert.Equal((int)SessionType.Race, first.ForecastSessionType);
+        Assert.Equal(10, first.TimeOffset);
+        Assert.Equal((int)Weather.LightRain, first.Weather);
+        Assert.Equal(32, first.TrackTemperature);
+        Assert.Equal((int)TemperatureChange.Up, first.TrackTemperatureChange);
+        Assert.Equal(25, first.AirTemperature);
+        Assert.Equal((int)TemperatureChange.Down, first.AirTemperatureChange);
+        Assert.Equal(60, first.RainPercentage);
+        Assert.Equal(1, first.ForecastAccuracy); // ForecastAccuracy.Approximate = 1
+        Assert.Equal(0, first.SampleIndex);
+
+        Assert.Equal(1, events[1].SampleIndex);
+    }
+
+    [Fact]
+    public void MapWeatherForecastSamples_DeduplicatesIdenticalForecasts()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+        var timestamp = DateTimeOffset.UtcNow;
+
+        var samples = new Array64<WeatherForecastSample>();
+        samples[0] = new WeatherForecastSample
+        {
+            SessionType = SessionType.Race,
+            TimeOffset = 5,
+            Weather = Weather.Clear,
+            TrackTemperature = 40,
+            TrackTemperatureChange = TemperatureChange.NoChange,
+            AirTemperature = 30,
+            AirTemperatureChange = TemperatureChange.NoChange,
+            RainPercentage = 0,
+        };
+        var data = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 1,
+            WeatherForecastSamples = samples,
+            ForecastAccuracy = ForecastAccuracy.Perfect,
+        };
+
+        var firstCall = mapper.MapWeatherForecastSamples(data, header, timestamp);
+        var secondCall = mapper.MapWeatherForecastSamples(data, header, timestamp);
+
+        Assert.Single(firstCall);
+        Assert.Empty(secondCall);
+    }
+
+    [Fact]
+    public void MapWeatherForecastSamples_EmitsOnChange()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+        var timestamp = DateTimeOffset.UtcNow;
+
+        var samplesA = new Array64<WeatherForecastSample>();
+        samplesA[0] = new WeatherForecastSample
+        {
+            SessionType = SessionType.Race,
+            TimeOffset = 5,
+            Weather = Weather.Clear,
+            TrackTemperature = 40,
+            TrackTemperatureChange = TemperatureChange.NoChange,
+            AirTemperature = 30,
+            AirTemperatureChange = TemperatureChange.NoChange,
+            RainPercentage = 0,
+        };
+        var dataA = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 1,
+            WeatherForecastSamples = samplesA,
+            ForecastAccuracy = ForecastAccuracy.Perfect,
+        };
+
+        var samplesB = new Array64<WeatherForecastSample>();
+        samplesB[0] = new WeatherForecastSample
+        {
+            SessionType = SessionType.Race,
+            TimeOffset = 5,
+            Weather = Weather.LightRain, // Different weather — forecast has changed.
+            TrackTemperature = 40,
+            TrackTemperatureChange = TemperatureChange.NoChange,
+            AirTemperature = 30,
+            AirTemperatureChange = TemperatureChange.NoChange,
+            RainPercentage = 30,
+        };
+        var dataB = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 1,
+            WeatherForecastSamples = samplesB,
+            ForecastAccuracy = ForecastAccuracy.Perfect,
+        };
+
+        var firstCall = mapper.MapWeatherForecastSamples(dataA, header, timestamp);
+        var secondCall = mapper.MapWeatherForecastSamples(dataB, header, timestamp);
+
+        Assert.Single(firstCall);
+        Assert.Single(secondCall);
+        Assert.Equal((int)Weather.LightRain, secondCall[0].Weather);
+    }
+
+    [Fact]
+    public void MapWeatherForecastSamples_EmitsOnForecastAccuracyChange()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+        var timestamp = DateTimeOffset.UtcNow;
+
+        var samples = new Array64<WeatherForecastSample>();
+        samples[0] = new WeatherForecastSample
+        {
+            SessionType = SessionType.Race,
+            TimeOffset = 5,
+            Weather = Weather.Clear,
+            TrackTemperature = 40,
+            TrackTemperatureChange = TemperatureChange.NoChange,
+            AirTemperature = 30,
+            AirTemperatureChange = TemperatureChange.NoChange,
+            RainPercentage = 0,
+        };
+
+        var dataA = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 1,
+            WeatherForecastSamples = samples,
+            ForecastAccuracy = ForecastAccuracy.Perfect,
+        };
+        var dataB = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 1,
+            WeatherForecastSamples = samples,
+            ForecastAccuracy = ForecastAccuracy.Approximate, // Only accuracy changed
+        };
+
+        var firstCall = mapper.MapWeatherForecastSamples(dataA, header, timestamp);
+        var secondCall = mapper.MapWeatherForecastSamples(dataB, header, timestamp);
+
+        Assert.Single(firstCall);
+        Assert.Single(secondCall);
+        Assert.Equal((int)ForecastAccuracy.Approximate, secondCall[0].ForecastAccuracy);
+    }
+
+    [Fact]
+    public void MapWeatherForecastSamples_EmptyWhenZeroSamples()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+        var data = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 0,
+        };
+
+        var events = mapper.MapWeatherForecastSamples(data, header, DateTimeOffset.UtcNow);
+
+        Assert.Empty(events);
+    }
+
+    [Fact]
+    public void MapPacket_Session_IncludesForecastEvents()
+    {
+        var mapper = CreateMapper();
+        var header = MakeHeader();
+
+        var samples = new Array64<WeatherForecastSample>();
+        samples[0] = new WeatherForecastSample
+        {
+            SessionType = SessionType.Race,
+            TimeOffset = 5,
+            Weather = Weather.Clear,
+            TrackTemperature = 38,
+            TrackTemperatureChange = TemperatureChange.NoChange,
+            AirTemperature = 28,
+            AirTemperatureChange = TemperatureChange.NoChange,
+            RainPercentage = 0,
+        };
+        var packetData = new SessionDataPacket
+        {
+            Header = header,
+            NumWeatherForecastSamples = 1,
+            WeatherForecastSamples = samples,
+            ForecastAccuracy = ForecastAccuracy.Perfect,
+        };
+        var packet = new UnionPacket(packetData);
+
+        var events = mapper.MapPacket(packet);
+
+        Assert.Equal(2, events.Count);
+        Assert.Equal("Session", events[0].EventType);
+        Assert.Equal("WeatherForecast", events[1].EventType);
+    }
 }

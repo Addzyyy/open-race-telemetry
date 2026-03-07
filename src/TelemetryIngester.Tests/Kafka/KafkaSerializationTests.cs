@@ -361,6 +361,48 @@ public sealed class KafkaSerializationTests
     }
 
     [Fact]
+    public void Deserialize_WeatherForecastEvent_RoundTrip()
+    {
+        var original = new WeatherForecastEvent
+        {
+            EventType = "WeatherForecast",
+            SessionUid = "12345",
+            Timestamp = new DateTimeOffset(2025, 6, 1, 12, 0, 0, TimeSpan.Zero),
+            FrameId = 77u,
+            CarIndex = 255,
+            ForecastSessionType = 10,
+            TimeOffset = 15,
+            Weather = 2,
+            TrackTemperature = 32,
+            TrackTemperatureChange = 1,
+            AirTemperature = 25,
+            AirTemperatureChange = 0,
+            RainPercentage = 60,
+            ForecastAccuracy = 1,
+            SampleIndex = 3,
+        };
+
+        var json = KafkaMessageSerializer.Serialize(original);
+        var deserialized = KafkaMessageSerializer.Deserialize(json);
+
+        var result = Assert.IsType<WeatherForecastEvent>(deserialized);
+        Assert.Equal(original.EventType, result.EventType);
+        Assert.Equal(original.SessionUid, result.SessionUid);
+        Assert.Equal(original.FrameId, result.FrameId);
+        Assert.Equal(255, result.CarIndex);
+        Assert.Equal(original.ForecastSessionType, result.ForecastSessionType);
+        Assert.Equal(original.TimeOffset, result.TimeOffset);
+        Assert.Equal(original.Weather, result.Weather);
+        Assert.Equal(original.TrackTemperature, result.TrackTemperature);
+        Assert.Equal(original.TrackTemperatureChange, result.TrackTemperatureChange);
+        Assert.Equal(original.AirTemperature, result.AirTemperature);
+        Assert.Equal(original.AirTemperatureChange, result.AirTemperatureChange);
+        Assert.Equal(original.RainPercentage, result.RainPercentage);
+        Assert.Equal(original.ForecastAccuracy, result.ForecastAccuracy);
+        Assert.Equal(original.SampleIndex, result.SampleIndex);
+    }
+
+    [Fact]
     public void Deserialize_UnknownEventType_ThrowsJsonException()
     {
         var json = """{"eventType":"Unknown","sessionUid":"1","timestamp":"2025-01-01T00:00:00+00:00","frameId":1,"carIndex":0,"data":{}}""";
