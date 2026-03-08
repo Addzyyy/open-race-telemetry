@@ -1,0 +1,549 @@
+{
+  "uid": "ers-fuel-review",
+  "title": "ERS & Fuel Review",
+  "tags": ["f1", "telemetry", "post-session"],
+  "timezone": "browser",
+  "refresh": "",
+  "liveNow": false,
+  "schemaVersion": 39,
+  "graphTooltip": 2,
+  "time": { "from": "now-24h", "to": "now" },
+  "fiscalYearStartMonth": 0,
+  "editable": true,
+  "links": [
+    {
+      "title": "Overview",
+      "url": "/d/overview-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Live Timing",
+      "url": "/d/live-timing-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Race Engineer",
+      "url": "/d/car-telemetry-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Health",
+      "url": "/d/tyre-health-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Analysis",
+      "url": "/d/driver-analysis-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy",
+      "url": "/d/strategy-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Debrief",
+      "url": "/d/debrief-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Lap Comparison",
+      "url": "/d/lap-comparison",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Degradation",
+      "url": "/d/tyre-degradation",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Performance",
+      "url": "/d/driver-performance",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy Review",
+      "url": "/d/strategy-retrospective",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Session Progress",
+      "url": "/d/session-progress",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "label": "Session",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
+        "refresh": 1,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "car_index",
+        "label": "Car",
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": { "selected": true, "text": "0", "value": "0" },
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "lap_a",
+        "label": "Lap A",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT DISTINCT current_lap_num FROM lap_data WHERE session_uid='$session' AND car_index=$car_index AND current_lap_num > 0 ORDER BY current_lap_num",
+        "refresh": 2,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "lap_b",
+        "label": "Lap B",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT DISTINCT current_lap_num FROM lap_data WHERE session_uid='$session' AND car_index=$car_index AND current_lap_num > 0 ORDER BY current_lap_num",
+        "refresh": 2,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Fuel per Lap",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 0, "w": 14, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH fuel_per_lap AS (\n  SELECT ld.current_lap_num AS lap,\n    MAX(cs.fuel_in_tank) - MIN(cs.fuel_in_tank) AS fuel_used\n  FROM car_status cs\n  JOIN lap_data ld ON ld.session_uid = cs.session_uid AND ld.car_index = cs.car_index AND ld.frame_id = cs.frame_id\n  WHERE cs.session_uid='$session' AND cs.car_index=$car_index AND ld.current_lap_num > 0\n  GROUP BY ld.current_lap_num\n  HAVING MAX(cs.fuel_in_tank) - MIN(cs.fuel_in_tank) > 0\n)\nSELECT lap AS \"Lap\", fuel_used AS \"Fuel Used (kg)\" FROM fuel_per_lap ORDER BY lap"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#FF8800" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "title": "Total Fuel Used",
+      "type": "stat",
+      "gridPos": { "x": 14, "y": 0, "w": 5, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time,\n  ROUND((MAX(fuel_in_tank) - MIN(fuel_in_tank))::numeric, 2) AS \"Total Fuel (kg)\"\nFROM car_status WHERE session_uid='$session' AND car_index=$car_index AND fuel_in_tank IS NOT NULL"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#FF8800" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#FF8800", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Avg Fuel per Lap",
+      "type": "stat",
+      "gridPos": { "x": 19, "y": 0, "w": 5, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH fuel_data AS (\n  SELECT MAX(cs.fuel_in_tank) - MIN(cs.fuel_in_tank) AS total_fuel,\n    MAX(sh.num_laps) - 1 AS total_laps\n  FROM car_status cs\n  JOIN session_history sh ON sh.session_uid = cs.session_uid AND sh.car_index = cs.car_index\n  WHERE cs.session_uid='$session' AND cs.car_index=$car_index AND cs.fuel_in_tank IS NOT NULL\n)\nSELECT now() AS time, ROUND((total_fuel / NULLIF(total_laps, 0))::numeric, 3) AS \"Avg Fuel/Lap (kg)\"\nFROM fuel_data"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#FF8800" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#FF8800", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Fuel Remaining",
+      "type": "stat",
+      "gridPos": { "x": 14, "y": 4, "w": 5, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, ROUND(fuel_remaining_laps::numeric, 1) AS \"Est. Laps Left\"\nFROM car_status WHERE session_uid='$session' AND car_index=$car_index AND fuel_remaining_laps IS NOT NULL\nORDER BY time DESC LIMIT 1"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "background",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 3 },
+              { "color": "green", "value": 5 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "title": "Fuel Level Curve",
+      "type": "xychart",
+      "gridPos": { "x": 19, "y": 4, "w": 5, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH fuel_curve AS (\n  SELECT ld.current_lap_num AS lap,\n    AVG(cs.fuel_in_tank) AS fuel\n  FROM car_status cs\n  JOIN lap_data ld ON ld.session_uid = cs.session_uid AND ld.car_index = cs.car_index AND ld.frame_id = cs.frame_id\n  WHERE cs.session_uid='$session' AND cs.car_index=$car_index AND ld.current_lap_num > 0\n  GROUP BY ld.current_lap_num\n)\nSELECT lap AS \"Lap\", fuel AS \"Fuel (kg)\" FROM fuel_curve ORDER BY lap"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#FF8800" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "title": "ERS Store vs Distance (Lap A vs B)",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 8, "w": 16, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", cs.ers_store_energy / 1000000.0 AS \"Lap A ERS (MJ)\"\nFROM car_status cs\nJOIN lap_data ld ON ld.session_uid = cs.session_uid AND ld.car_index = cs.car_index AND ld.frame_id = cs.frame_id\nWHERE cs.session_uid='$session' AND cs.car_index=$car_index AND ld.current_lap_num = $lap_a AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", cs.ers_store_energy / 1000000.0 AS \"Lap B ERS (MJ)\"\nFROM car_status cs\nJOIN lap_data ld ON ld.session_uid = cs.session_uid AND ld.car_index = cs.car_index AND ld.frame_id = cs.frame_id\nWHERE cs.session_uid='$session' AND cs.car_index=$car_index AND ld.current_lap_num = $lap_b AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Lap A ERS (MJ)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#4488FF" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Lap B ERS (MJ)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF8800" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "title": "ERS Deploy Mode Distribution",
+      "type": "barchart",
+      "gridPos": { "x": 16, "y": 8, "w": 8, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH mode_time AS (\n  SELECT cs.ers_deploy_mode,\n    COUNT(*) AS frame_count\n  FROM car_status cs\n  WHERE cs.session_uid='$session' AND cs.car_index=$car_index AND cs.ers_deploy_mode IS NOT NULL\n  GROUP BY cs.ers_deploy_mode\n)\nSELECT ers_deploy_mode AS \"Mode\", frame_count AS \"Frames\"\nFROM mode_time ORDER BY ers_deploy_mode"
+        }
+      ],
+      "options": {
+        "xField": "Mode",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "fillOpacity": 80,
+        "gradientMode": "none",
+        "orientation": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#00CCFF" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Mode" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "0": { "text": "None" } } },
+                  { "type": "value", "options": { "1": { "text": "Medium" } } },
+                  { "type": "value", "options": { "2": { "text": "Hotlap" } } },
+                  { "type": "value", "options": { "3": { "text": "Overtake" } } }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "title": "ERS Harvesting per Lap",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 18, "w": 14, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH ers_per_lap AS (\n  SELECT ld.current_lap_num AS lap,\n    MAX(cs.ers_harvested_lap_mguk) / 1000000.0 AS mguk,\n    MAX(cs.ers_harvested_lap_mguh) / 1000000.0 AS mguh\n  FROM car_status cs\n  JOIN lap_data ld ON ld.session_uid = cs.session_uid AND ld.car_index = cs.car_index AND ld.frame_id = cs.frame_id\n  WHERE cs.session_uid='$session' AND cs.car_index=$car_index AND ld.current_lap_num > 0\n  GROUP BY ld.current_lap_num\n)\nSELECT lap AS \"Lap\", mguk AS \"MGU-K (MJ)\", mguh AS \"MGU-H (MJ)\" FROM ers_per_lap ORDER BY lap"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "MGU-K (MJ)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#00CCFF" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "MGU-H (MJ)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF44FF" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "title": "Fuel-Adjusted Lap Times",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 26, "w": 24, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH lap_fuel AS (\n  SELECT ROW_NUMBER() OVER (ORDER BY sh.time ASC) AS lap_num,\n    sh.latest_lap_time_ms / 1000.0 AS raw_time,\n    cs.fuel_in_tank\n  FROM session_history sh\n  LEFT JOIN LATERAL (\n    SELECT fuel_in_tank FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND fuel_in_tank IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n),\nmin_fuel AS (SELECT MIN(fuel_in_tank) AS mf FROM lap_fuel)\nSELECT lf.lap_num AS \"Lap\",\n  lf.raw_time AS \"Raw\",\n  lf.raw_time - (lf.fuel_in_tank - mf.mf) * 0.030 AS \"Fuel-Adjusted\"\nFROM lap_fuel lf, min_fuel mf\nORDER BY lf.lap_num"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Raw" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FFFFFF" } },
+              { "id": "custom.fillOpacity", "value": 50 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Fuel-Adjusted" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#00FF00" } }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
