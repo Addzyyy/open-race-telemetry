@@ -1,7 +1,11 @@
 {
   "uid": "overview-pw",
   "title": "Pit Wall Overview",
-  "tags": ["f1", "telemetry", "pit-wall"],
+  "tags": [
+    "f1",
+    "telemetry",
+    "pit-wall"
+  ],
   "timezone": "browser",
   "refresh": "1s",
   "liveNow": true,
@@ -59,6 +63,54 @@
       "keepTime": true,
       "type": "link",
       "targetBlank": false
+    },
+    {
+      "title": "Lap Comparison",
+      "url": "/d/lap-comparison",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Degradation",
+      "url": "/d/tyre-degradation",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Performance",
+      "url": "/d/driver-performance",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy Review",
+      "url": "/d/strategy-retrospective",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Session Progress",
+      "url": "/d/session-progress",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "ERS & Fuel",
+      "url": "/d/ers-fuel-review",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
     }
   ],
   "templating": {
@@ -97,12 +149,23 @@
       "id": 1,
       "title": "Track",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 5, "x": 0, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 5,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, track AS \"Track\" FROM session WHERE session_uid='$session' ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -115,40 +178,108 @@
             {
               "type": "value",
               "options": {
-                "0": { "text": "Melbourne" },
-                "1": { "text": "Paul Ricard" },
-                "2": { "text": "Shanghai" },
-                "3": { "text": "Bahrain" },
-                "4": { "text": "Catalunya" },
-                "5": { "text": "Monaco" },
-                "6": { "text": "Montreal" },
-                "7": { "text": "Silverstone" },
-                "8": { "text": "Hockenheim" },
-                "9": { "text": "Hungaroring" },
-                "10": { "text": "Spa" },
-                "11": { "text": "Monza" },
-                "12": { "text": "Singapore" },
-                "13": { "text": "Suzuka" },
-                "14": { "text": "Abu Dhabi" },
-                "15": { "text": "COTA" },
-                "16": { "text": "Interlagos" },
-                "17": { "text": "Red Bull Ring" },
-                "18": { "text": "Sochi" },
-                "19": { "text": "Mexico City" },
-                "20": { "text": "Baku" },
-                "21": { "text": "Sakhir Short" },
-                "22": { "text": "Silverstone Short" },
-                "23": { "text": "COTA Short" },
-                "24": { "text": "Suzuka Short" },
-                "25": { "text": "Hanoi" },
-                "26": { "text": "Zandvoort" },
-                "27": { "text": "Imola" },
-                "28": { "text": "Portimao" },
-                "29": { "text": "Jeddah" },
-                "30": { "text": "Miami" },
-                "31": { "text": "Las Vegas" },
-                "32": { "text": "Losail" },
-                "33": { "text": "Lusail Short" }
+                "0": {
+                  "text": "Melbourne"
+                },
+                "1": {
+                  "text": "Paul Ricard"
+                },
+                "2": {
+                  "text": "Shanghai"
+                },
+                "3": {
+                  "text": "Bahrain"
+                },
+                "4": {
+                  "text": "Catalunya"
+                },
+                "5": {
+                  "text": "Monaco"
+                },
+                "6": {
+                  "text": "Montreal"
+                },
+                "7": {
+                  "text": "Silverstone"
+                },
+                "8": {
+                  "text": "Hockenheim"
+                },
+                "9": {
+                  "text": "Hungaroring"
+                },
+                "10": {
+                  "text": "Spa"
+                },
+                "11": {
+                  "text": "Monza"
+                },
+                "12": {
+                  "text": "Singapore"
+                },
+                "13": {
+                  "text": "Suzuka"
+                },
+                "14": {
+                  "text": "Abu Dhabi"
+                },
+                "15": {
+                  "text": "COTA"
+                },
+                "16": {
+                  "text": "Interlagos"
+                },
+                "17": {
+                  "text": "Red Bull Ring"
+                },
+                "18": {
+                  "text": "Sochi"
+                },
+                "19": {
+                  "text": "Mexico City"
+                },
+                "20": {
+                  "text": "Baku"
+                },
+                "21": {
+                  "text": "Sakhir Short"
+                },
+                "22": {
+                  "text": "Silverstone Short"
+                },
+                "23": {
+                  "text": "COTA Short"
+                },
+                "24": {
+                  "text": "Suzuka Short"
+                },
+                "25": {
+                  "text": "Hanoi"
+                },
+                "26": {
+                  "text": "Zandvoort"
+                },
+                "27": {
+                  "text": "Imola"
+                },
+                "28": {
+                  "text": "Portimao"
+                },
+                "29": {
+                  "text": "Jeddah"
+                },
+                "30": {
+                  "text": "Miami"
+                },
+                "31": {
+                  "text": "Las Vegas"
+                },
+                "32": {
+                  "text": "Losail"
+                },
+                "33": {
+                  "text": "Lusail Short"
+                }
               }
             }
           ]
@@ -157,7 +288,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -168,12 +301,23 @@
       "id": 2,
       "title": "Session Type",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 3, "x": 5, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 5,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, session_type AS \"Session\" FROM session WHERE session_uid='$session' ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -186,20 +330,48 @@
             {
               "type": "value",
               "options": {
-                "0": { "text": "Unknown" },
-                "1": { "text": "P1" },
-                "2": { "text": "P2" },
-                "3": { "text": "P3" },
-                "4": { "text": "Short Practice" },
-                "5": { "text": "Q1" },
-                "6": { "text": "Q2" },
-                "7": { "text": "Q3" },
-                "8": { "text": "Short Quali" },
-                "9": { "text": "OSQ" },
-                "10": { "text": "Race" },
-                "11": { "text": "Race 2" },
-                "12": { "text": "Race 3" },
-                "13": { "text": "Time Trial" }
+                "0": {
+                  "text": "Unknown"
+                },
+                "1": {
+                  "text": "P1"
+                },
+                "2": {
+                  "text": "P2"
+                },
+                "3": {
+                  "text": "P3"
+                },
+                "4": {
+                  "text": "Short Practice"
+                },
+                "5": {
+                  "text": "Q1"
+                },
+                "6": {
+                  "text": "Q2"
+                },
+                "7": {
+                  "text": "Q3"
+                },
+                "8": {
+                  "text": "Short Quali"
+                },
+                "9": {
+                  "text": "OSQ"
+                },
+                "10": {
+                  "text": "Race"
+                },
+                "11": {
+                  "text": "Race 2"
+                },
+                "12": {
+                  "text": "Race 3"
+                },
+                "13": {
+                  "text": "Time Trial"
+                }
               }
             }
           ]
@@ -208,7 +380,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -219,12 +393,23 @@
       "id": 3,
       "title": "Lap / Total",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 3, "x": 8, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 8,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT ld.time, ld.current_lap_num || ' / ' || s.total_laps AS \"Lap\" FROM lap_data ld JOIN LATERAL (SELECT total_laps FROM session WHERE session_uid='$session' ORDER BY time DESC LIMIT 1) s ON true WHERE ld.session_uid='$session' AND ld.car_index=$car_index ORDER BY ld.time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -237,7 +422,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -248,12 +435,23 @@
       "id": 4,
       "title": "Time Remaining",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 3, "x": 11, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 11,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, session_time_left AS \"Time Left\" FROM session WHERE session_uid='$session' ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -268,7 +466,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -279,12 +479,23 @@
       "id": 5,
       "title": "Weather",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 3, "x": 14, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 14,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, weather AS \"Weather\", air_temperature AS \"Air\", track_temperature AS \"Track\" FROM session WHERE session_uid='$session' ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -297,12 +508,24 @@
             {
               "type": "value",
               "options": {
-                "0": { "text": "Clear" },
-                "1": { "text": "Light Cloud" },
-                "2": { "text": "Overcast" },
-                "3": { "text": "Light Rain" },
-                "4": { "text": "Heavy Rain" },
-                "5": { "text": "Storm" }
+                "0": {
+                  "text": "Clear"
+                },
+                "1": {
+                  "text": "Light Cloud"
+                },
+                "2": {
+                  "text": "Overcast"
+                },
+                "3": {
+                  "text": "Light Rain"
+                },
+                "4": {
+                  "text": "Heavy Rain"
+                },
+                "5": {
+                  "text": "Storm"
+                }
               }
             }
           ]
@@ -311,7 +534,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -322,12 +547,23 @@
       "id": 6,
       "title": "Safety Car",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 4, "x": 17, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 17,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, safety_car_status FROM session WHERE session_uid='$session' ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -340,10 +576,22 @@
             {
               "type": "value",
               "options": {
-                "0": { "text": "\u2014", "color": "dark-gray" },
-                "1": { "text": "SAFETY CAR", "color": "yellow" },
-                "2": { "text": "VSC", "color": "yellow" },
-                "3": { "text": "RED FLAG", "color": "red" }
+                "0": {
+                  "text": "\u2014",
+                  "color": "dark-gray"
+                },
+                "1": {
+                  "text": "SAFETY CAR",
+                  "color": "yellow"
+                },
+                "2": {
+                  "text": "VSC",
+                  "color": "yellow"
+                },
+                "3": {
+                  "text": "RED FLAG",
+                  "color": "red"
+                }
               }
             }
           ]
@@ -352,7 +600,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -363,12 +613,23 @@
       "id": 7,
       "title": "Position",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 3, "x": 21, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 21,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, car_position FROM lap_data WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -383,7 +644,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "value",
@@ -394,12 +657,23 @@
       "id": 8,
       "title": "Timing Tower",
       "type": "table",
-      "gridPos": { "h": 11, "w": 14, "x": 0, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 11,
+        "w": 14,
+        "x": 0,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT\n  ld.car_position AS \"Pos\",\n  p.name AS \"Driver\",\n  sh.latest_lap_time_ms / 1000.0 AS \"Last\",\n  cs.visual_tyre_compound AS \"Tyre\",\n  cs.tyres_age_laps AS \"Age\",\n  ld.num_pit_stops AS \"Pits\"\nFROM lap_data ld\nJOIN LATERAL (\n  SELECT name FROM participants\n  WHERE session_uid='$session' AND car_index=ld.car_index\n  ORDER BY time DESC LIMIT 1\n) p ON true\nJOIN LATERAL (\n  SELECT latest_lap_time_ms FROM session_history\n  WHERE session_uid='$session' AND car_index=ld.car_index\n  ORDER BY time DESC LIMIT 1\n) sh ON true\nJOIN LATERAL (\n  SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n  WHERE session_uid='$session' AND car_index=ld.car_index AND visual_tyre_compound IS NOT NULL\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE ld.session_uid='$session'\n  AND ld.time = (SELECT MAX(time) FROM lap_data WHERE session_uid='$session' AND car_index=ld.car_index)\nORDER BY ld.car_position ASC",
           "rawQuery": true,
           "editorMode": "code",
@@ -410,14 +684,26 @@
         "defaults": {},
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Last" },
+            "matcher": {
+              "id": "byName",
+              "options": "Last"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Tyre" },
+            "matcher": {
+              "id": "byName",
+              "options": "Tyre"
+            },
             "properties": [
               {
                 "id": "mappings",
@@ -425,11 +711,21 @@
                   {
                     "type": "value",
                     "options": {
-                      "16": { "text": "S" },
-                      "17": { "text": "M" },
-                      "18": { "text": "H" },
-                      "7": { "text": "I" },
-                      "8": { "text": "W" }
+                      "16": {
+                        "text": "S"
+                      },
+                      "17": {
+                        "text": "M"
+                      },
+                      "18": {
+                        "text": "H"
+                      },
+                      "7": {
+                        "text": "I"
+                      },
+                      "8": {
+                        "text": "W"
+                      }
                     }
                   }
                 ]
@@ -439,19 +735,32 @@
         ]
       },
       "options": {
-        "footer": { "show": false }
+        "footer": {
+          "show": false
+        }
       }
     },
     {
       "id": 9,
       "title": "Speed",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 3, "x": 14, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 14,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, speed FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -466,7 +775,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -477,12 +788,23 @@
       "id": 10,
       "title": "Gear",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 2, "x": 17, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 17,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, gear FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -495,8 +817,12 @@
             {
               "type": "value",
               "options": {
-                "-1": { "text": "R" },
-                "0": { "text": "N" }
+                "-1": {
+                  "text": "R"
+                },
+                "0": {
+                  "text": "N"
+                }
               }
             }
           ]
@@ -505,7 +831,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -516,12 +844,23 @@
       "id": 11,
       "title": "DRS",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 2, "x": 19, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 19,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, drs::int FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -534,8 +873,14 @@
             {
               "type": "value",
               "options": {
-                "0": { "text": "\u2014", "color": "dark-gray" },
-                "1": { "text": "OPEN", "color": "green" }
+                "0": {
+                  "text": "\u2014",
+                  "color": "dark-gray"
+                },
+                "1": {
+                  "text": "OPEN",
+                  "color": "green"
+                }
               }
             }
           ]
@@ -544,7 +889,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -555,12 +902,23 @@
       "id": 12,
       "title": "Last Lap",
       "type": "stat",
-      "gridPos": { "h": 3, "w": 3, "x": 21, "y": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 21,
+        "y": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, latest_lap_time_ms / 1000.0 AS \"Last Lap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) AND latest_lap_time_ms IS NOT NULL ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -576,7 +934,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -587,12 +947,23 @@
       "id": 13,
       "title": "FL",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 2, "x": 14, "y": 6 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 2,
+        "x": 14,
+        "y": 6
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, tyres_surface_temp_fl AS \"FL\" FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -605,10 +976,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": 80 },
-              { "color": "yellow", "value": 100 },
-              { "color": "red", "value": 110 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 80
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 110
+              }
             ]
           }
         },
@@ -616,7 +999,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -627,12 +1012,23 @@
       "id": 14,
       "title": "FR",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 16, "y": 6 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 16,
+        "y": 6
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, tyres_surface_temp_fr AS \"FR\" FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -645,10 +1041,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": 80 },
-              { "color": "yellow", "value": 100 },
-              { "color": "red", "value": 110 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 80
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 110
+              }
             ]
           }
         },
@@ -656,7 +1064,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -667,12 +1077,23 @@
       "id": 15,
       "title": "RL",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 2, "x": 14, "y": 10 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 2,
+        "x": 14,
+        "y": 10
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, tyres_surface_temp_rl AS \"RL\" FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -685,10 +1106,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": 80 },
-              { "color": "yellow", "value": 100 },
-              { "color": "red", "value": 110 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 80
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 110
+              }
             ]
           }
         },
@@ -696,7 +1129,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -707,12 +1142,23 @@
       "id": 16,
       "title": "RR",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 16, "y": 10 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 16,
+        "y": 10
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, tyres_surface_temp_rr AS \"RR\" FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -725,10 +1171,22 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null },
-              { "color": "green", "value": 80 },
-              { "color": "yellow", "value": 100 },
-              { "color": "red", "value": 110 }
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 80
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 110
+              }
             ]
           }
         },
@@ -736,7 +1194,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -747,12 +1207,23 @@
       "id": 17,
       "title": "Tyre + Age",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 19, "y": 6 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 19,
+        "y": 6
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, visual_tyre_compound AS \"Compound\", tyres_age_laps AS \"Age\" FROM car_status WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -765,11 +1236,26 @@
             {
               "type": "value",
               "options": {
-                "16": { "text": "SOFT", "color": "red" },
-                "17": { "text": "MEDIUM", "color": "yellow" },
-                "18": { "text": "HARD", "color": "white" },
-                "7": { "text": "INTER", "color": "green" },
-                "8": { "text": "WET", "color": "blue" }
+                "16": {
+                  "text": "SOFT",
+                  "color": "red"
+                },
+                "17": {
+                  "text": "MEDIUM",
+                  "color": "yellow"
+                },
+                "18": {
+                  "text": "HARD",
+                  "color": "white"
+                },
+                "7": {
+                  "text": "INTER",
+                  "color": "green"
+                },
+                "8": {
+                  "text": "WET",
+                  "color": "blue"
+                }
               }
             }
           ]
@@ -778,7 +1264,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -789,12 +1277,23 @@
       "id": 18,
       "title": "Best Lap",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 2, "x": 22, "y": 6 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 2,
+        "x": 22,
+        "y": 6
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, MIN(latest_lap_time_ms) / 1000.0 AS \"Best\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) GROUP BY time ORDER BY \"Best\" ASC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -814,7 +1313,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -825,12 +1326,23 @@
       "id": 19,
       "title": "Fuel Laps",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 5, "x": 19, "y": 10 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 19,
+        "y": 10
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, fuel_remaining_laps AS \"Fuel Laps\" FROM car_status WHERE session_uid='$session' AND car_index=$car_index AND fuel_remaining_laps IS NOT NULL AND $__timeFilter(time) ORDER BY time DESC LIMIT 1",
           "rawQuery": true,
           "editorMode": "code",
@@ -843,9 +1355,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 3 },
-              { "color": "green", "value": 5 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 3
+              },
+              {
+                "color": "green",
+                "value": 5
+              }
             ]
           }
         },
@@ -853,7 +1374,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"]
+          "calcs": [
+            "lastNotNull"
+          ]
         },
         "graphMode": "none",
         "textMode": "auto",
@@ -864,12 +1387,23 @@
       "id": 20,
       "title": "Position Over Time",
       "type": "timeseries",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 14 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawSql": "SELECT time, car_position AS \"Position\" FROM lap_data WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time",
           "rawQuery": true,
           "editorMode": "code",
