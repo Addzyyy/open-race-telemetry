@@ -74,11 +74,13 @@
       {
         "name": "car_index",
         "label": "Car",
-        "type": "query",
-        "datasource": { "type": "postgres", "uid": "timescaledb" },
-        "query": "SELECT DISTINCT car_index FROM car_telemetry WHERE session_uid='$session' ORDER BY car_index",
-        "refresh": 2,
-        "sort": 3,
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": {
+          "selected": true,
+          "text": "0",
+          "value": "0"
+        },
         "includeAll": false,
         "multi": false
       }
@@ -139,8 +141,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "fixed",
-            "fixedColor": "#FFFFFF"
+            "mode": "value"
           },
           "mappings": [
             {
@@ -395,7 +396,7 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "unit": "clockms",
+          "unit": "s",
           "decimals": 3,
           "color": {
             "mode": "thresholds"
@@ -428,7 +429,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT time, latest_lap_time_ms AS \"Last Lap\" FROM session_history WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) AND latest_lap_time_ms IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawSql": "SELECT time, latest_lap_time_ms / 1000.0 AS \"Last Lap\" FROM session_history WHERE session_uid = '$session' AND car_index = $car_index AND $__timeFilter(time) AND latest_lap_time_ms IS NOT NULL ORDER BY time DESC LIMIT 1",
           "refId": "A"
         }
       ]
@@ -441,7 +442,7 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "s",
           "decimals": 3,
           "color": {
             "mode": "thresholds"

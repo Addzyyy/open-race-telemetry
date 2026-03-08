@@ -74,11 +74,13 @@
       {
         "name": "car_index",
         "label": "Car",
-        "type": "query",
-        "datasource": { "type": "postgres", "uid": "timescaledb" },
-        "query": "SELECT DISTINCT car_index FROM car_telemetry WHERE session_uid='$session' ORDER BY car_index",
-        "refresh": 2,
-        "sort": 3,
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": {
+          "selected": true,
+          "text": "0",
+          "value": "0"
+        },
         "includeAll": false,
         "multi": false
       }
@@ -93,17 +95,49 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
+          "custom": {
+            "axisCenteredZero": true
+          },
           "color": {
             "mode": "fixed",
             "fixedColor": "#00FF00"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "x" },
+            "properties": [
+              { "id": "min", "value": -5 },
+              { "id": "max", "value": 5 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "y" },
+            "properties": [
+              { "id": "min", "value": -5 },
+              { "id": "max", "value": 5 }
+            ]
+          }
+        ]
       },
       "options": {
-        "seriesMapping": "auto",
-        "tooltip": { "mode": "single" },
-        "legend": { "showLegend": false }
+        "seriesMapping": "manual",
+        "series": [
+          {
+            "x": { "field": "x" },
+            "y": { "field": "y" },
+            "pointSize": { "fixed": 3 },
+            "pointColor": { "fixed": "#00FF00" }
+          }
+        ],
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false }
       },
       "targets": [
         {
@@ -111,7 +145,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT g_force_lateral AS \"Lateral G\", g_force_longitudinal AS \"Longitudinal G\" FROM car_motion WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1800",
+          "rawSql": "SELECT g_force_lateral AS x, g_force_longitudinal AS y FROM car_motion WHERE session_uid='$session' AND car_index=$car_index AND $__timeFilter(time) ORDER BY time DESC LIMIT 1800",
           "refId": "A"
         }
       ]
@@ -378,7 +412,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT (FLOOR(latest_lap_time_ms / 500.0) * 0.5)::text || 's' AS \"Time Bucket\", COUNT(*) AS \"Count\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_lap_valid = true GROUP BY FLOOR(latest_lap_time_ms / 500.0) ORDER BY FLOOR(latest_lap_time_ms / 500.0)",
+          "rawSql": "SELECT FLOOR(latest_lap_time_ms / 500.0) * 0.5 AS \"Time Bucket (s)\", COUNT(*) AS \"Count\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_lap_valid = true GROUP BY FLOOR(latest_lap_time_ms / 500.0) ORDER BY \"Time Bucket (s)\"",
           "refId": "A"
         }
       ]
@@ -391,7 +425,7 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "s",
           "color": {
             "mode": "palette-classic"
           },
@@ -444,7 +478,7 @@
       "datasource": { "type": "postgres", "uid": "timescaledb" },
       "fieldConfig": {
         "defaults": {
-          "unit": "clockms",
+          "unit": "s",
           "decimals": 3,
           "color": {
             "fixedColor": "#FFFFFF",
@@ -489,7 +523,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT time, latest_lap_time_ms AS \"Lap Time\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) ORDER BY time",
+          "rawSql": "SELECT time, latest_lap_time_ms / 1000.0 AS \"Lap Time\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) ORDER BY time",
           "refId": "A"
         }
       ]
@@ -505,14 +539,44 @@
           "color": {
             "fixedColor": "#FF0000",
             "mode": "fixed"
+          },
+          "custom": {
+            "axisCenteredZero": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "x" },
+            "properties": [
+              { "id": "custom.axisLabel", "value": "Speed (km/h)" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "y" },
+            "properties": [
+              { "id": "custom.axisLabel", "value": "Brake Pressure" }
+            ]
+          }
+        ]
       },
       "options": {
-        "seriesMapping": "auto",
-        "tooltip": { "mode": "single" },
-        "legend": { "showLegend": false }
+        "seriesMapping": "manual",
+        "series": [
+          {
+            "x": { "field": "x" },
+            "y": { "field": "y" },
+            "pointSize": { "fixed": 2 },
+            "pointColor": { "fixed": "#FF0000" }
+          }
+        ],
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false }
       },
       "targets": [
         {
@@ -520,7 +584,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT speed AS \"Speed\", brake AS \"Brake\" FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND brake > 0.1 AND $__timeFilter(time) ORDER BY time DESC LIMIT 2000",
+          "rawSql": "SELECT speed AS x, brake AS y FROM car_telemetry WHERE session_uid='$session' AND car_index=$car_index AND brake > 0.1 AND $__timeFilter(time) ORDER BY time DESC LIMIT 2000",
           "refId": "A"
         }
       ]

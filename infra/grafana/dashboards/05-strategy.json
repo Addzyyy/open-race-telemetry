@@ -68,13 +68,12 @@
       {
         "name": "car_index",
         "label": "Car",
-        "type": "query",
-        "datasource": { "type": "postgres", "uid": "timescaledb" },
-        "query": "SELECT DISTINCT car_index FROM car_telemetry WHERE session_uid='$session' ORDER BY car_index",
-        "refresh": 2,
-        "sort": 3,
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": { "selected": true, "text": "0", "value": "0" },
         "includeAll": false,
-        "multi": false
+        "multi": false,
+        "hide": 0
       }
     ]
   },
@@ -194,7 +193,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "clockms",
+          "unit": "s",
           "decimals": 3,
           "color": { "mode": "fixed", "fixedColor": "#A020F0" },
           "mappings": [],
@@ -212,7 +211,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT time, MIN(latest_lap_time_ms) AS \"Best Lap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) GROUP BY time ORDER BY MIN(latest_lap_time_ms) ASC LIMIT 1"
+          "rawSql": "SELECT time, MIN(latest_lap_time_ms) / 1000.0 AS \"Best Lap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND $__timeFilter(time) GROUP BY time ORDER BY \"Best Lap\" ASC LIMIT 1"
         }
       ]
     },
@@ -235,7 +234,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "clockms",
+          "unit": "s",
           "decimals": 3,
           "color": { "mode": "fixed", "fixedColor": "#00FF00" },
           "mappings": [],
@@ -253,7 +252,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT now() AS time,\n  (MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) AS \"Theoretical\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
+          "rawSql": "SELECT now() AS time,\n  (MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) / 1000.0 AS \"Theoretical\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
         }
       ]
     },
@@ -276,7 +275,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "none",
+          "unit": "s",
           "decimals": 3,
           "mappings": [],
           "thresholds": {
@@ -376,7 +375,7 @@
             "axisPlacement": "auto",
             "scaleDistribution": { "type": "linear" }
           },
-          "unit": "clockms",
+          "unit": "s",
           "decimals": 3,
           "mappings": [],
           "thresholds": {
@@ -393,7 +392,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT sh.time, sh.latest_lap_time_ms AS \"Lap Time\", cs.visual_tyre_compound AS \"compound\"\nFROM session_history sh\nJOIN LATERAL (\n  SELECT visual_tyre_compound FROM car_status\n  WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0 AND $__timeFilter(sh.time)\nORDER BY sh.time"
+          "rawSql": "SELECT sh.time, sh.latest_lap_time_ms / 1000.0 AS \"Lap Time\", cs.visual_tyre_compound AS \"compound\"\nFROM session_history sh\nJOIN LATERAL (\n  SELECT visual_tyre_compound FROM car_status\n  WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n  ORDER BY time DESC LIMIT 1\n) cs ON true\nWHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0 AND $__timeFilter(sh.time)\nORDER BY sh.time"
         }
       ]
     },
@@ -417,27 +416,6 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Best" },
-            "properties": [
-              { "id": "unit", "value": "clockms" },
-              { "id": "decimals", "value": 3 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Avg" },
-            "properties": [
-              { "id": "unit", "value": "clockms" },
-              { "id": "decimals", "value": 3 }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Worst" },
-            "properties": [
-              { "id": "unit", "value": "clockms" },
-              { "id": "decimals", "value": 3 }
-            ]
-          },
-          {
             "matcher": { "id": "byName", "options": "Compound" },
             "properties": [
               {
@@ -456,6 +434,27 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Best" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Avg" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Worst" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
           }
         ]
       },
@@ -466,7 +465,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "WITH laps AS (\n  SELECT sh.latest_lap_time_ms, cs.visual_tyre_compound\n  FROM session_history sh\n  JOIN LATERAL (\n    SELECT visual_tyre_compound FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n)\nSELECT visual_tyre_compound AS \"Compound\",\n  COUNT(*) AS \"Laps\",\n  MIN(latest_lap_time_ms) AS \"Best\",\n  AVG(latest_lap_time_ms)::integer AS \"Avg\",\n  MAX(latest_lap_time_ms) AS \"Worst\"\nFROM laps\nGROUP BY visual_tyre_compound\nORDER BY MIN(latest_lap_time_ms) ASC"
+          "rawSql": "WITH laps AS (\n  SELECT sh.latest_lap_time_ms, cs.visual_tyre_compound\n  FROM session_history sh\n  JOIN LATERAL (\n    SELECT visual_tyre_compound FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n)\nSELECT visual_tyre_compound AS \"Compound\",\n  COUNT(*) AS \"Laps\",\n  MIN(latest_lap_time_ms) / 1000.0 AS \"Best\",\n  AVG(latest_lap_time_ms) / 1000.0 AS \"Avg\",\n  MAX(latest_lap_time_ms) / 1000.0 AS \"Worst\"\nFROM laps\nGROUP BY visual_tyre_compound\nORDER BY \"Best\" ASC"
         }
       ]
     },
@@ -620,7 +619,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "clockms",
+          "unit": "s",
           "decimals": 3,
           "mappings": [],
           "thresholds": {
@@ -637,7 +636,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT\n  MIN(latest_sector1_time_ms) AS \"Best S1\",\n  MIN(latest_sector2_time_ms) AS \"Best S2\",\n  MIN(latest_sector3_time_ms) AS \"Best S3\",\n  (MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) AS \"Theoretical\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
+          "rawSql": "SELECT\n  MIN(latest_sector1_time_ms) / 1000.0 AS \"Best S1\",\n  MIN(latest_sector2_time_ms) / 1000.0 AS \"Best S2\",\n  MIN(latest_sector3_time_ms) / 1000.0 AS \"Best S3\",\n  (MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) / 1000.0 AS \"Theoretical\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
         }
       ]
     },
@@ -663,7 +662,7 @@
             "axisPlacement": "auto",
             "scaleDistribution": { "type": "linear" }
           },
-          "unit": "clockms",
+          "unit": "s",
           "decimals": 3,
           "mappings": [],
           "thresholds": {
@@ -699,7 +698,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT time,\n  latest_sector1_time_ms AS \"S1\",\n  latest_sector2_time_ms AS \"S2\",\n  latest_sector3_time_ms AS \"S3\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0\n  AND $__timeFilter(time)\nORDER BY time"
+          "rawSql": "SELECT time,\n  latest_sector1_time_ms / 1000.0 AS \"S1\",\n  latest_sector2_time_ms / 1000.0 AS \"S2\",\n  latest_sector3_time_ms / 1000.0 AS \"S3\"\nFROM session_history\nWHERE session_uid='$session' AND car_index=$car_index\n  AND latest_sector1_time_ms > 0\n  AND $__timeFilter(time)\nORDER BY time"
         }
       ]
     }
