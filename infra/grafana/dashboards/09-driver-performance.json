@@ -1,0 +1,742 @@
+{
+  "uid": "driver-performance",
+  "title": "Driver Performance",
+  "tags": ["f1", "telemetry", "post-session"],
+  "timezone": "browser",
+  "refresh": "",
+  "liveNow": false,
+  "schemaVersion": 39,
+  "graphTooltip": 2,
+  "time": { "from": "now-24h", "to": "now" },
+  "fiscalYearStartMonth": 0,
+  "editable": true,
+  "links": [
+    { "title": "Overview",        "url": "/d/overview-pw",           "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Live Timing",     "url": "/d/live-timing-pw",        "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Race Engineer",   "url": "/d/car-telemetry-pw",      "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Tyre Health",     "url": "/d/tyre-health-pw",        "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Driver Analysis", "url": "/d/driver-analysis-pw",    "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Strategy",        "url": "/d/strategy-pw",           "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Debrief",         "url": "/d/debrief-pw",            "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Lap Comparison",  "url": "/d/lap-comparison",        "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Tyre Degradation","url": "/d/tyre-degradation",      "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Strategy Review", "url": "/d/strategy-retrospective","includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "Session Progress","url": "/d/session-progress",      "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false },
+    { "title": "ERS & Fuel",      "url": "/d/ers-fuel-review",       "includeVars": true, "keepTime": true, "type": "link", "targetBlank": false }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "label": "Session",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
+        "refresh": 1,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "car_index",
+        "label": "Car",
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": { "selected": true, "text": "0", "value": "0" },
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Best Lap",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 5, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, MIN(latest_lap_time_ms) / 1000.0 AS \"Best Lap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "fixed", "fixedColor": "#A020F0" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#A020F0", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Theoretical Best",
+      "type": "stat",
+      "gridPos": { "x": 5, "y": 0, "w": 5, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, (MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms)) / 1000.0 AS \"Theoretical\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "fixed", "fixedColor": "#00FF00" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#00FF00", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Gap to Theoretical",
+      "type": "stat",
+      "gridPos": { "x": 10, "y": 0, "w": 5, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, (MIN(latest_lap_time_ms) - (MIN(latest_sector1_time_ms) + MIN(latest_sector2_time_ms) + MIN(latest_sector3_time_ms))) / 1000.0 AS \"Gap\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.3 },
+              { "color": "red", "value": 0.5 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Consistency",
+      "type": "stat",
+      "gridPos": { "x": 15, "y": 0, "w": 5, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, STDDEV(latest_lap_time_ms) / 1000.0 AS \"Std Dev\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_lap_valid = true"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 1.0 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Clean Lap Rate",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, ROUND(100.0 * COUNT(*) FILTER (WHERE latest_lap_valid = true) / NULLIF(COUNT(*), 0), 1) AS \"Clean %\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "green", "value": 90 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "background",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Lap Time Histogram",
+      "type": "barchart",
+      "gridPos": { "x": 0, "y": 4, "w": 10, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT FLOOR(latest_lap_time_ms / 200.0) * 0.2 AS \"Time Bucket (s)\", COUNT(*) AS \"Count\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0 AND latest_lap_valid = true GROUP BY FLOOR(latest_lap_time_ms / 200.0) ORDER BY \"Time Bucket (s)\""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#A020F0" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 1,
+            "scaleDistribution": { "type": "linear" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "Time Bucket (s)",
+        "barWidth": 0.97,
+        "groupWidth": 0.7,
+        "fillOpacity": 80,
+        "gradientMode": "none",
+        "orientation": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      }
+    },
+    {
+      "id": 7,
+      "title": "Lap Time Progression",
+      "type": "barchart",
+      "gridPos": { "x": 10, "y": 4, "w": 14, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH laps AS (\n  SELECT ROW_NUMBER() OVER (ORDER BY sh.time ASC) AS lap_num,\n    sh.latest_lap_time_ms / 1000.0 AS lap_time,\n    cs.visual_tyre_compound AS compound\n  FROM session_history sh\n  LEFT JOIN LATERAL (\n    SELECT visual_tyre_compound FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n)\nSELECT lap_num AS \"Lap\", lap_time AS \"Lap Time\" FROM laps ORDER BY lap_num"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": { "mode": "fixed", "fixedColor": "#A020F0" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#A020F0", "value": null }]
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 1,
+            "scaleDistribution": { "type": "linear" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "Lap",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "fillOpacity": 80,
+        "gradientMode": "none",
+        "orientation": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      }
+    },
+    {
+      "id": 8,
+      "title": "Sector Delta to Best",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 12, "w": 14, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH bests AS (\n  SELECT MIN(latest_sector1_time_ms) AS bs1, MIN(latest_sector2_time_ms) AS bs2, MIN(latest_sector3_time_ms) AS bs3\n  FROM session_history WHERE session_uid='$session' AND car_index=$car_index\n    AND latest_sector1_time_ms > 0 AND latest_sector2_time_ms > 0 AND latest_sector3_time_ms > 0\n)\nSELECT ROW_NUMBER() OVER (ORDER BY sh.time ASC) AS \"Lap\",\n  (sh.latest_sector1_time_ms - b.bs1) / 1000.0 AS \"S1 \u0394\",\n  (sh.latest_sector2_time_ms - b.bs2) / 1000.0 AS \"S2 \u0394\",\n  (sh.latest_sector3_time_ms - b.bs3) / 1000.0 AS \"S3 \u0394\",\n  ((sh.latest_sector1_time_ms - b.bs1) + (sh.latest_sector2_time_ms - b.bs2) + (sh.latest_sector3_time_ms - b.bs3)) / 1000.0 AS \"Total \u0394\",\n  sh.latest_lap_valid AS \"Valid\"\nFROM session_history sh, bests b\nWHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\nORDER BY sh.time ASC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "S1 \u0394" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 0.2 },
+                    { "color": "red", "value": 0.5 }
+                  ]
+                }
+              },
+              { "id": "custom.displayMode", "value": "color-text" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S2 \u0394" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 0.2 },
+                    { "color": "red", "value": 0.5 }
+                  ]
+                }
+              },
+              { "id": "custom.displayMode", "value": "color-text" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "S3 \u0394" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 0.2 },
+                    { "color": "red", "value": 0.5 }
+                  ]
+                }
+              },
+              { "id": "custom.displayMode", "value": "color-text" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Total \u0394" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 0.2 },
+                    { "color": "red", "value": 0.5 }
+                  ]
+                }
+              },
+              { "id": "custom.displayMode", "value": "color-text" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "sortBy": [{ "displayName": "Lap", "desc": false }]
+      }
+    },
+    {
+      "id": 9,
+      "title": "Best vs Avg per Sector",
+      "type": "barchart",
+      "gridPos": { "x": 14, "y": 12, "w": 10, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT 'S1' AS \"Sector\", MIN(latest_sector1_time_ms) / 1000.0 AS \"Best\", AVG(latest_sector1_time_ms) / 1000.0 AS \"Avg\" FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_sector1_time_ms > 0 UNION ALL SELECT 'S2', MIN(latest_sector2_time_ms) / 1000.0, AVG(latest_sector2_time_ms) / 1000.0 FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_sector2_time_ms > 0 UNION ALL SELECT 'S3', MIN(latest_sector3_time_ms) / 1000.0, AVG(latest_sector3_time_ms) / 1000.0 FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_sector3_time_ms > 0"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 1,
+            "scaleDistribution": { "type": "linear" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Best" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#00FF00" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Avg" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF8800" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "xField": "Sector",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "fillOpacity": 80,
+        "gradientMode": "none",
+        "orientation": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      }
+    },
+    {
+      "id": 10,
+      "title": "G-Ball (Best Lap)",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 22, "w": 10, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH best_lap AS (\n  SELECT best_lap_time_lap_num\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND best_lap_time_lap_num > 0\n  ORDER BY time DESC LIMIT 1\n)\nSELECT cm.g_force_lateral AS x, cm.g_force_longitudinal AS y\nFROM car_motion cm\nJOIN lap_data ld ON ld.session_uid = cm.session_uid AND ld.car_index = cm.car_index AND ld.frame_id = cm.frame_id\nWHERE cm.session_uid='$session' AND cm.car_index=$car_index\n  AND ld.current_lap_num = (SELECT best_lap_time_lap_num FROM best_lap)\nORDER BY cm.time"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#00FF00" },
+          "custom": { "axisCenteredZero": true },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "x" },
+            "properties": [
+              { "id": "min", "value": -5 },
+              { "id": "max", "value": 5 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "y" },
+            "properties": [
+              { "id": "min", "value": -5 },
+              { "id": "max", "value": 5 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesMapping": "manual",
+        "series": [
+          {
+            "x": { "field": "x" },
+            "y": { "field": "y" },
+            "pointSize": { "fixed": 3 },
+            "pointColor": { "fixed": "#00FF00" }
+          }
+        ],
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false }
+      }
+    },
+    {
+      "id": 11,
+      "title": "G-Ball (Session)",
+      "type": "xychart",
+      "gridPos": { "x": 10, "y": 22, "w": 10, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT g_force_lateral AS x, g_force_longitudinal AS y FROM car_motion WHERE session_uid='$session' AND car_index=$car_index ORDER BY time LIMIT 5000"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#00FF00" },
+          "custom": { "axisCenteredZero": true },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "x" },
+            "properties": [
+              { "id": "min", "value": -5 },
+              { "id": "max", "value": 5 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "y" },
+            "properties": [
+              { "id": "min", "value": -5 },
+              { "id": "max", "value": 5 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "seriesMapping": "manual",
+        "series": [
+          {
+            "x": { "field": "x" },
+            "y": { "field": "y" },
+            "pointSize": { "fixed": 2 },
+            "pointColor": { "fixed": "#00FF00" }
+          }
+        ],
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Max G-Force",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 22, "w": 4, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, ROUND(MAX(SQRT(g_force_lateral * g_force_lateral + g_force_longitudinal * g_force_longitudinal))::numeric, 2) AS \"Peak G\" FROM car_motion WHERE session_uid='$session' AND car_index=$car_index"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "color": { "mode": "fixed", "fixedColor": "#FFD700" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#FFD700", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 13,
+      "title": "Avg Combined G",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 27, "w": 4, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, ROUND(AVG(SQRT(g_force_lateral * g_force_lateral + g_force_longitudinal * g_force_longitudinal))::numeric, 2) AS \"Avg G\" FROM car_motion WHERE session_uid='$session' AND car_index=$car_index"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "color": { "mode": "fixed", "fixedColor": "#FFD700" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#FFD700", "value": null }]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto"
+      }
+    }
+  ]
+}

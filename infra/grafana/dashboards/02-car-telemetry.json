@@ -1,7 +1,11 @@
 {
   "uid": "car-telemetry-pw",
   "title": "Race Engineer",
-  "tags": ["f1", "telemetry", "pit-wall"],
+  "tags": [
+    "f1",
+    "telemetry",
+    "pit-wall"
+  ],
   "timezone": "browser",
   "refresh": "1s",
   "liveNow": true,
@@ -14,6 +18,14 @@
   "fiscalYearStartMonth": 0,
   "editable": true,
   "links": [
+    {
+      "title": "Pit Wall Overview",
+      "url": "/d/overview-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
     {
       "title": "Live Timing",
       "url": "/d/live-timing-pw",
@@ -49,6 +61,54 @@
     {
       "title": "Debrief",
       "url": "/d/debrief-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Lap Comparison",
+      "url": "/d/lap-comparison",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Degradation",
+      "url": "/d/tyre-degradation",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Performance",
+      "url": "/d/driver-performance",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy Review",
+      "url": "/d/strategy-retrospective",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Session Progress",
+      "url": "/d/session-progress",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "ERS & Fuel",
+      "url": "/d/ers-fuel-review",
       "includeVars": true,
       "keepTime": true,
       "type": "link",
@@ -91,8 +151,16 @@
       "id": 1,
       "title": "Speed",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "velocitykmh",
@@ -102,7 +170,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
@@ -116,14 +187,19 @@
         "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -136,8 +212,16 @@
       "id": 2,
       "title": "Gear",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -161,7 +245,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
@@ -175,14 +262,19 @@
         "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -195,8 +287,16 @@
       "id": 3,
       "title": "RPM",
       "type": "gauge",
-      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "min": 0,
@@ -207,9 +307,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 10000 },
-              { "color": "red", "value": 11000 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10000
+              },
+              {
+                "color": "red",
+                "value": 11000
+              }
             ]
           }
         },
@@ -220,7 +329,9 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -230,7 +341,10 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -243,8 +357,16 @@
       "id": 4,
       "title": "DRS",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -270,7 +392,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "dark-gray", "value": null }
+              {
+                "color": "dark-gray",
+                "value": null
+              }
             ]
           }
         },
@@ -284,14 +409,19 @@
         "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -304,8 +434,16 @@
       "id": 5,
       "title": "Lap",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -314,7 +452,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
@@ -328,14 +469,19 @@
         "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -348,8 +494,16 @@
       "id": 6,
       "title": "Position",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 15,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -358,7 +512,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
@@ -372,14 +529,19 @@
         "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -392,8 +554,16 @@
       "id": 7,
       "title": "Last Lap",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
@@ -404,7 +574,10 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
@@ -418,14 +591,19 @@
         "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -438,8 +616,16 @@
       "id": 8,
       "title": "Delta to Best",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 3, "x": 21, "y": 0 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 0
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "s",
@@ -450,8 +636,14 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 0 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              }
             ]
           }
         },
@@ -465,14 +657,19 @@
         "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -485,8 +682,16 @@
       "id": 9,
       "title": "Speed Trace",
       "type": "timeseries",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 4 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "velocitykmh",
@@ -506,32 +711,57 @@
             "drawStyle": "line",
             "fillOpacity": 5,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -544,8 +774,16 @@
       "id": 10,
       "title": "Throttle & Brake",
       "type": "timeseries",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 10 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "min": 0,
@@ -563,51 +801,88 @@
             "drawStyle": "line",
             "fillOpacity": 20,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "throttle" },
+            "matcher": {
+              "id": "byName",
+              "options": "throttle"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "green", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
               }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "brake" },
+            "matcher": {
+              "id": "byName",
+              "options": "brake"
+            },
             "properties": [
               {
                 "id": "color",
-                "value": { "fixedColor": "red", "mode": "fixed" }
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
               }
             ]
           }
         ]
       },
       "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -620,8 +895,16 @@
       "id": 11,
       "title": "Steering",
       "type": "timeseries",
-      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 16 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "min": -1,
@@ -640,32 +923,57 @@
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -678,8 +986,16 @@
       "id": 12,
       "title": "Gear Trace",
       "type": "timeseries",
-      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 21 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "decimals": 0,
@@ -699,32 +1015,57 @@
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "lineInterpolation": "stepAfter",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -737,8 +1078,16 @@
       "id": 13,
       "title": "RPM Trace",
       "type": "timeseries",
-      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 26 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 26
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -754,34 +1103,65 @@
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "lineInterpolation": "linear",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "area" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 10000 },
-              { "color": "red", "value": 11000 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10000
+              },
+              {
+                "color": "red",
+                "value": 11000
+              }
             ]
           }
         },
         "overrides": []
       },
       "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -794,8 +1174,16 @@
       "id": 14,
       "title": "ERS Energy",
       "type": "gauge",
-      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 26 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 26
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -807,9 +1195,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 20 },
-              { "color": "green", "value": 50 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "green",
+                "value": 50
+              }
             ]
           }
         },
@@ -820,7 +1217,9 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -830,7 +1229,10 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -843,8 +1245,16 @@
       "id": 15,
       "title": "Fuel",
       "type": "stat",
-      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 26 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 26
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -853,23 +1263,44 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Fuel (kg)" },
+            "matcher": {
+              "id": "byName",
+              "options": "Fuel (kg)"
+            },
             "properties": [
-              { "id": "unit", "value": "kg" },
-              { "id": "decimals", "value": 1 }
+              {
+                "id": "unit",
+                "value": "kg"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Fuel Laps" },
+            "matcher": {
+              "id": "byName",
+              "options": "Fuel Laps"
+            },
             "properties": [
-              { "id": "unit", "value": "laps" },
-              { "id": "decimals", "value": 1 }
+              {
+                "id": "unit",
+                "value": "laps"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
             ]
           }
         ]
@@ -882,14 +1313,19 @@
         "textMode": "auto",
         "wideLayout": true,
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
@@ -897,7 +1333,10 @@
           "refId": "A"
         },
         {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,

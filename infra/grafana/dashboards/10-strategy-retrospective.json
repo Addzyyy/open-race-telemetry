@@ -1,0 +1,516 @@
+{
+  "uid": "strategy-retrospective",
+  "title": "Strategy Retrospective",
+  "tags": ["f1", "telemetry", "post-session"],
+  "timezone": "browser",
+  "refresh": "",
+  "liveNow": false,
+  "schemaVersion": 39,
+  "graphTooltip": 2,
+  "time": { "from": "now-24h", "to": "now" },
+  "fiscalYearStartMonth": 0,
+  "editable": true,
+  "links": [
+    {
+      "title": "Overview",
+      "url": "/d/overview-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Live Timing",
+      "url": "/d/live-timing-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Race Engineer",
+      "url": "/d/car-telemetry-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Health",
+      "url": "/d/tyre-health-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Analysis",
+      "url": "/d/driver-analysis-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy",
+      "url": "/d/strategy-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Debrief",
+      "url": "/d/debrief-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Lap Comparison",
+      "url": "/d/lap-comparison",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Degradation",
+      "url": "/d/tyre-degradation",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Performance",
+      "url": "/d/driver-performance",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Session Progress",
+      "url": "/d/session-progress",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "ERS & Fuel",
+      "url": "/d/ers-fuel-review",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "label": "Session",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
+        "refresh": 1,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "car_index",
+        "label": "Car",
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": { "selected": true, "text": "0", "value": "0" },
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Position vs Lap",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 0, "w": 16, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT DISTINCT ON (current_lap_num) current_lap_num AS \"Lap\", car_position AS \"Position\"\nFROM lap_data\nWHERE session_uid='$session' AND car_index=$car_index AND current_lap_num > 0\nORDER BY current_lap_num, time DESC"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#FFD700" },
+          "custom": {
+            "axisLabel": "Position"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Position" },
+            "properties": [
+              { "id": "min", "value": 1 },
+              { "id": "max", "value": 20 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "title": "Final Result",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, position AS \"Finish Pos\"\nFROM final_classification\nWHERE session_uid='$session' AND car_index=$car_index\nLIMIT 1"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "background",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 4 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Grid vs Finish",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, grid_position - position AS \"Positions Gained\"\nFROM final_classification\nWHERE session_uid='$session' AND car_index=$car_index\nLIMIT 1"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "background",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Total Pit Stops",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 5, "w": 4, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, num_pit_stops AS \"Pit Stops\"\nFROM final_classification\nWHERE session_uid='$session' AND car_index=$car_index\nLIMIT 1"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "title": "Penalties",
+      "type": "stat",
+      "gridPos": { "x": 20, "y": 5, "w": 4, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, penalties_time AS \"Penalties (s)\"\nFROM final_classification\nWHERE session_uid='$session' AND car_index=$car_index\nLIMIT 1"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "background",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "title": "Pit Stop Summary",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 10, "w": 24, "h": 7 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH pit_events AS (\n  SELECT time, current_lap_num, car_position, pit_status, num_pit_stops,\n    LAG(pit_status) OVER (ORDER BY time) AS prev_pit_status\n  FROM lap_data\n  WHERE session_uid='$session' AND car_index=$car_index\n)\nSELECT DISTINCT ON (num_pit_stops)\n  num_pit_stops AS \"Pit #\",\n  current_lap_num AS \"Lap\",\n  car_position AS \"Position\",\n  cs.visual_tyre_compound AS \"New Compound\"\nFROM pit_events pe\nLEFT JOIN LATERAL (\n  SELECT visual_tyre_compound FROM car_status\n  WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time >= pe.time\n  ORDER BY time ASC LIMIT 1\n) cs ON true\nWHERE pit_status > 0 AND (prev_pit_status = 0 OR prev_pit_status IS NULL) AND num_pit_stops > 0\nORDER BY num_pit_stops, time ASC"
+        }
+      ],
+      "options": {
+        "sortBy": [{ "displayName": "Pit #", "desc": false }],
+        "footer": { "show": false, "reducer": ["sum"], "enablePagination": false },
+        "showHeader": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "New Compound" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "16": { "text": "Soft",   "color": "red",       "index": 0 },
+                      "17": { "text": "Medium", "color": "yellow",    "index": 1 },
+                      "18": { "text": "Hard",   "color": "dark-gray", "index": 2 },
+                      "7":  { "text": "Inter",  "color": "green",     "index": 3 },
+                      "8":  { "text": "Wet",    "color": "blue",      "index": 4 }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "title": "Lap Times with Stint Colors",
+      "type": "barchart",
+      "gridPos": { "x": 0, "y": 17, "w": 16, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH stint_data AS (\n  SELECT sh.time, sh.latest_lap_time_ms, cs.visual_tyre_compound, cs.tyres_age_laps,\n    LAG(cs.visual_tyre_compound) OVER (ORDER BY sh.time) AS prev_compound,\n    LAG(cs.tyres_age_laps) OVER (ORDER BY sh.time) AS prev_age\n  FROM session_history sh\n  LEFT JOIN LATERAL (\n    SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n),\nstints AS (\n  SELECT *,\n    SUM(CASE WHEN prev_compound IS NULL OR visual_tyre_compound != prev_compound OR tyres_age_laps < prev_age THEN 1 ELSE 0 END)\n      OVER (ORDER BY time) AS stint_num\n  FROM stint_data\n)\nSELECT ROW_NUMBER() OVER (ORDER BY time) AS \"Lap\",\n  latest_lap_time_ms AS \"Lap Time\"\nFROM stints ORDER BY time"
+        }
+      ],
+      "options": {
+        "xField": "Lap",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "fillOpacity": 80,
+        "gradientMode": "none",
+        "orientation": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "clockms",
+          "decimals": 3,
+          "color": { "mode": "fixed", "fixedColor": "#A020F0" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#A020F0", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 8,
+      "title": "Strategy Summary",
+      "type": "table",
+      "gridPos": { "x": 16, "y": 17, "w": 8, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH stint_data AS (\n  SELECT sh.time, sh.latest_lap_time_ms, cs.visual_tyre_compound, cs.tyres_age_laps,\n    LAG(cs.visual_tyre_compound) OVER (ORDER BY sh.time) AS prev_compound,\n    LAG(cs.tyres_age_laps) OVER (ORDER BY sh.time) AS prev_age\n  FROM session_history sh\n  LEFT JOIN LATERAL (\n    SELECT visual_tyre_compound, tyres_age_laps FROM car_status\n    WHERE session_uid='$session' AND car_index=$car_index AND visual_tyre_compound IS NOT NULL AND time <= sh.time\n    ORDER BY time DESC LIMIT 1\n  ) cs ON true\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n),\nstints AS (\n  SELECT *,\n    SUM(CASE WHEN prev_compound IS NULL OR visual_tyre_compound != prev_compound OR tyres_age_laps < prev_age THEN 1 ELSE 0 END)\n      OVER (ORDER BY time) AS stint_num\n  FROM stint_data\n)\nSELECT stint_num AS \"Stint\",\n  visual_tyre_compound AS \"Compound\",\n  COUNT(*) AS \"Laps\",\n  MIN(latest_lap_time_ms) AS \"Best\",\n  AVG(latest_lap_time_ms)::integer AS \"Avg\",\n  ROUND(regr_slope(latest_lap_time_ms, tyres_age_laps)::numeric / 1000.0, 4) AS \"Deg Rate\"\nFROM stints GROUP BY stint_num, visual_tyre_compound ORDER BY stint_num"
+        }
+      ],
+      "options": {
+        "sortBy": [{ "displayName": "Stint", "desc": false }],
+        "footer": { "show": false, "reducer": ["sum"], "enablePagination": false },
+        "showHeader": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Compound" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "16": { "text": "Soft",   "color": "red",       "index": 0 },
+                      "17": { "text": "Medium", "color": "yellow",    "index": 1 },
+                      "18": { "text": "Hard",   "color": "dark-gray", "index": 2 },
+                      "7":  { "text": "Inter",  "color": "green",     "index": 3 },
+                      "8":  { "text": "Wet",    "color": "blue",      "index": 4 }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Best" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Avg" },
+            "properties": [
+              { "id": "unit", "value": "clockms" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Deg Rate" },
+            "properties": [
+              { "id": "unit", "value": "none" },
+              { "id": "decimals", "value": 4 }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,15 +1,30 @@
 {
   "uid": "live-timing-pw",
   "title": "Live Timing",
-  "tags": ["f1", "telemetry", "pit-wall"],
+  "tags": [
+    "f1",
+    "telemetry",
+    "pit-wall"
+  ],
   "refresh": "1s",
   "schemaVersion": 39,
   "graphTooltip": 2,
-  "time": { "from": "now-5m", "to": "now" },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
   "liveNow": true,
   "fiscalYearStartMonth": 0,
   "timezone": "browser",
   "links": [
+    {
+      "title": "Pit Wall Overview",
+      "url": "/d/overview-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
     {
       "title": "Race Engineer",
       "url": "/d/car-telemetry-pw",
@@ -49,6 +64,54 @@
       "keepTime": true,
       "type": "link",
       "targetBlank": false
+    },
+    {
+      "title": "Lap Comparison",
+      "url": "/d/lap-comparison",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Degradation",
+      "url": "/d/tyre-degradation",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Performance",
+      "url": "/d/driver-performance",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy Review",
+      "url": "/d/strategy-retrospective",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Session Progress",
+      "url": "/d/session-progress",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "ERS & Fuel",
+      "url": "/d/ers-fuel-review",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
     }
   ],
   "templating": {
@@ -57,7 +120,10 @@
         "name": "session",
         "label": "Session",
         "type": "query",
-        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "datasource": {
+          "type": "postgres",
+          "uid": "timescaledb"
+        },
         "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
         "refresh": 2,
         "sort": 0,
@@ -70,7 +136,11 @@
         "label": "Car",
         "type": "custom",
         "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
-        "current": { "selected": true, "text": "0", "value": "0" },
+        "current": {
+          "selected": true,
+          "text": "0",
+          "value": "0"
+        },
         "includeAll": false,
         "multi": false,
         "hide": 0
@@ -82,14 +152,24 @@
       "id": 1,
       "title": "Session Info",
       "type": "stat",
-      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
         "graphMode": "none",
         "textMode": "auto",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -100,78 +180,191 @@
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Track" },
+            "matcher": {
+              "id": "byName",
+              "options": "Track"
+            },
             "properties": [
               {
                 "id": "mappings",
                 "value": [
-                  { "type": "value", "options": {
-                    "0":  { "text": "Melbourne" },
-                    "1":  { "text": "Paul Ricard" },
-                    "2":  { "text": "Shanghai" },
-                    "3":  { "text": "Bahrain" },
-                    "4":  { "text": "Catalunya" },
-                    "5":  { "text": "Monaco" },
-                    "6":  { "text": "Montreal" },
-                    "7":  { "text": "Silverstone" },
-                    "8":  { "text": "Hockenheim" },
-                    "9":  { "text": "Hungaroring" },
-                    "10": { "text": "Spa" },
-                    "11": { "text": "Monza" },
-                    "12": { "text": "Singapore" },
-                    "13": { "text": "Suzuka" },
-                    "14": { "text": "Abu Dhabi" },
-                    "15": { "text": "COTA" },
-                    "16": { "text": "Interlagos" },
-                    "17": { "text": "Red Bull Ring" },
-                    "18": { "text": "Sochi" },
-                    "19": { "text": "Mexico City" },
-                    "20": { "text": "Baku" },
-                    "21": { "text": "Sakhir Short" },
-                    "22": { "text": "Silverstone Short" },
-                    "23": { "text": "COTA Short" },
-                    "24": { "text": "Suzuka Short" },
-                    "25": { "text": "Hanoi" },
-                    "26": { "text": "Zandvoort" },
-                    "27": { "text": "Imola" },
-                    "28": { "text": "Portimao" },
-                    "29": { "text": "Jeddah" },
-                    "30": { "text": "Miami" },
-                    "31": { "text": "Las Vegas" },
-                    "32": { "text": "Losail" },
-                    "33": { "text": "Lusail Short" }
-                  }}
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "Melbourne"
+                      },
+                      "1": {
+                        "text": "Paul Ricard"
+                      },
+                      "2": {
+                        "text": "Shanghai"
+                      },
+                      "3": {
+                        "text": "Bahrain"
+                      },
+                      "4": {
+                        "text": "Catalunya"
+                      },
+                      "5": {
+                        "text": "Monaco"
+                      },
+                      "6": {
+                        "text": "Montreal"
+                      },
+                      "7": {
+                        "text": "Silverstone"
+                      },
+                      "8": {
+                        "text": "Hockenheim"
+                      },
+                      "9": {
+                        "text": "Hungaroring"
+                      },
+                      "10": {
+                        "text": "Spa"
+                      },
+                      "11": {
+                        "text": "Monza"
+                      },
+                      "12": {
+                        "text": "Singapore"
+                      },
+                      "13": {
+                        "text": "Suzuka"
+                      },
+                      "14": {
+                        "text": "Abu Dhabi"
+                      },
+                      "15": {
+                        "text": "COTA"
+                      },
+                      "16": {
+                        "text": "Interlagos"
+                      },
+                      "17": {
+                        "text": "Red Bull Ring"
+                      },
+                      "18": {
+                        "text": "Sochi"
+                      },
+                      "19": {
+                        "text": "Mexico City"
+                      },
+                      "20": {
+                        "text": "Baku"
+                      },
+                      "21": {
+                        "text": "Sakhir Short"
+                      },
+                      "22": {
+                        "text": "Silverstone Short"
+                      },
+                      "23": {
+                        "text": "COTA Short"
+                      },
+                      "24": {
+                        "text": "Suzuka Short"
+                      },
+                      "25": {
+                        "text": "Hanoi"
+                      },
+                      "26": {
+                        "text": "Zandvoort"
+                      },
+                      "27": {
+                        "text": "Imola"
+                      },
+                      "28": {
+                        "text": "Portimao"
+                      },
+                      "29": {
+                        "text": "Jeddah"
+                      },
+                      "30": {
+                        "text": "Miami"
+                      },
+                      "31": {
+                        "text": "Las Vegas"
+                      },
+                      "32": {
+                        "text": "Losail"
+                      },
+                      "33": {
+                        "text": "Lusail Short"
+                      }
+                    }
+                  }
                 ]
               }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Session" },
+            "matcher": {
+              "id": "byName",
+              "options": "Session"
+            },
             "properties": [
               {
                 "id": "mappings",
                 "value": [
-                  { "type": "value", "options": {
-                    "0":  { "text": "Unknown" },
-                    "1":  { "text": "P1" },
-                    "2":  { "text": "P2" },
-                    "3":  { "text": "P3" },
-                    "4":  { "text": "Short Practice" },
-                    "5":  { "text": "Q1" },
-                    "6":  { "text": "Q2" },
-                    "7":  { "text": "Q3" },
-                    "8":  { "text": "Short Quali" },
-                    "9":  { "text": "OSQ" },
-                    "10": { "text": "Race" },
-                    "11": { "text": "Race 2" },
-                    "12": { "text": "Race 3" },
-                    "13": { "text": "Time Trial" }
-                  }}
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "Unknown"
+                      },
+                      "1": {
+                        "text": "P1"
+                      },
+                      "2": {
+                        "text": "P2"
+                      },
+                      "3": {
+                        "text": "P3"
+                      },
+                      "4": {
+                        "text": "Short Practice"
+                      },
+                      "5": {
+                        "text": "Q1"
+                      },
+                      "6": {
+                        "text": "Q2"
+                      },
+                      "7": {
+                        "text": "Q3"
+                      },
+                      "8": {
+                        "text": "Short Quali"
+                      },
+                      "9": {
+                        "text": "OSQ"
+                      },
+                      "10": {
+                        "text": "Race"
+                      },
+                      "11": {
+                        "text": "Race 2"
+                      },
+                      "12": {
+                        "text": "Race 3"
+                      },
+                      "13": {
+                        "text": "Time Trial"
+                      }
+                    }
+                  }
                 ]
               }
             ]
@@ -181,7 +374,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -189,7 +385,10 @@
         },
         {
           "refId": "B",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -201,14 +400,24 @@
       "id": 2,
       "title": "Time Remaining",
       "type": "stat",
-      "gridPos": { "x": 6, "y": 0, "w": 4, "h": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 4,
+        "h": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
         "graphMode": "none",
         "textMode": "auto",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -221,9 +430,18 @@
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 300 },
-              { "color": "green", "value": 600 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 300
+              },
+              {
+                "color": "green",
+                "value": 600
+              }
             ]
           }
         },
@@ -232,7 +450,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -244,14 +465,24 @@
       "id": 3,
       "title": "Weather & Track Conditions",
       "type": "stat",
-      "gridPos": { "x": 10, "y": 0, "w": 6, "h": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 10,
+        "y": 0,
+        "w": 6,
+        "h": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
         "graphMode": "none",
         "textMode": "auto",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -262,38 +493,73 @@
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Weather" },
+            "matcher": {
+              "id": "byName",
+              "options": "Weather"
+            },
             "properties": [
               {
                 "id": "mappings",
                 "value": [
-                  { "type": "value", "options": {
-                    "0": { "text": "Clear" },
-                    "1": { "text": "Light Cloud" },
-                    "2": { "text": "Overcast" },
-                    "3": { "text": "Light Rain" },
-                    "4": { "text": "Heavy Rain" },
-                    "5": { "text": "Storm" }
-                  }}
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "Clear"
+                      },
+                      "1": {
+                        "text": "Light Cloud"
+                      },
+                      "2": {
+                        "text": "Overcast"
+                      },
+                      "3": {
+                        "text": "Light Rain"
+                      },
+                      "4": {
+                        "text": "Heavy Rain"
+                      },
+                      "5": {
+                        "text": "Storm"
+                      }
+                    }
+                  }
                 ]
               }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Air" },
+            "matcher": {
+              "id": "byName",
+              "options": "Air"
+            },
             "properties": [
-              { "id": "unit", "value": "celsius" }
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Track" },
+            "matcher": {
+              "id": "byName",
+              "options": "Track"
+            },
             "properties": [
-              { "id": "unit", "value": "celsius" }
+              {
+                "id": "unit",
+                "value": "celsius"
+              }
             ]
           }
         ]
@@ -301,7 +567,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -313,14 +582,24 @@
       "id": 4,
       "title": "Safety Car",
       "type": "stat",
-      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
         "graphMode": "none",
         "textMode": "auto",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -332,25 +611,51 @@
             {
               "type": "value",
               "options": {
-                "0": { "text": "\u2014", "color": "dark-gray", "index": 0 },
-                "1": { "text": "SAFETY CAR", "color": "yellow", "index": 1 },
-                "2": { "text": "VSC", "color": "yellow", "index": 2 },
-                "3": { "text": "RED FLAG", "color": "red", "index": 3 }
+                "0": {
+                  "text": "\u2014",
+                  "color": "dark-gray",
+                  "index": 0
+                },
+                "1": {
+                  "text": "SAFETY CAR",
+                  "color": "yellow",
+                  "index": 1
+                },
+                "2": {
+                  "text": "VSC",
+                  "color": "yellow",
+                  "index": 2
+                },
+                "3": {
+                  "text": "RED FLAG",
+                  "color": "red",
+                  "index": 3
+                }
               }
             }
           ],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "dark-gray", "value": null }]
+            "steps": [
+              {
+                "color": "dark-gray",
+                "value": null
+              }
+            ]
           },
-          "color": { "mode": "thresholds" }
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -362,14 +667,24 @@
       "id": 5,
       "title": "Lap / Total",
       "type": "stat",
-      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 3 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 3
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
         "graphMode": "none",
         "textMode": "auto",
         "colorMode": "value",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -380,7 +695,12 @@
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": []
@@ -388,7 +708,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -400,72 +723,167 @@
       "id": 6,
       "title": "Timing Tower",
       "type": "table",
-      "gridPos": { "x": 0, "y": 3, "w": 17, "h": 12 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 17,
+        "h": 12
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
-        "footer": { "show": false, "reducer": ["sum"], "enablePagination": false },
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "enablePagination": false
+        },
         "showHeader": true,
-        "sortBy": [{ "displayName": "Pos", "desc": false }]
+        "sortBy": [
+          {
+            "displayName": "Pos",
+            "desc": false
+          }
+        ]
       },
       "fieldConfig": {
         "defaults": {
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Tyre" },
+            "matcher": {
+              "id": "byName",
+              "options": "Tyre"
+            },
             "properties": [
               {
                 "id": "mappings",
                 "value": [
-                  { "type": "value", "options": {
-                    "16": { "text": "S", "color": "red", "index": 0 },
-                    "17": { "text": "M", "color": "yellow", "index": 1 },
-                    "18": { "text": "H", "color": "dark-gray", "index": 2 },
-                    "7":  { "text": "I", "color": "green", "index": 3 },
-                    "8":  { "text": "W", "color": "blue", "index": 4 }
-                  }}
+                  {
+                    "type": "value",
+                    "options": {
+                      "16": {
+                        "text": "S",
+                        "color": "red",
+                        "index": 0
+                      },
+                      "17": {
+                        "text": "M",
+                        "color": "yellow",
+                        "index": 1
+                      },
+                      "18": {
+                        "text": "H",
+                        "color": "dark-gray",
+                        "index": 2
+                      },
+                      "7": {
+                        "text": "I",
+                        "color": "green",
+                        "index": 3
+                      },
+                      "8": {
+                        "text": "W",
+                        "color": "blue",
+                        "index": 4
+                      }
+                    }
+                  }
                 ]
               }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Last" },
+            "matcher": {
+              "id": "byName",
+              "options": "Last"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Best" },
+            "matcher": {
+              "id": "byName",
+              "options": "Best"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "S1" },
+            "matcher": {
+              "id": "byName",
+              "options": "S1"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "S2" },
+            "matcher": {
+              "id": "byName",
+              "options": "S2"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "S3" },
+            "matcher": {
+              "id": "byName",
+              "options": "S3"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           }
         ]
@@ -473,7 +891,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -485,10 +906,24 @@
       "id": 7,
       "title": "Lap History",
       "type": "table",
-      "gridPos": { "x": 17, "y": 3, "w": 7, "h": 12 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 17,
+        "y": 3,
+        "w": 7,
+        "h": 12
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
-        "footer": { "show": false, "reducer": ["sum"], "enablePagination": false },
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "enablePagination": false
+        },
         "showHeader": true
       },
       "fieldConfig": {
@@ -496,36 +931,77 @@
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "S1" },
+            "matcher": {
+              "id": "byName",
+              "options": "S1"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "S2" },
+            "matcher": {
+              "id": "byName",
+              "options": "S2"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "S3" },
+            "matcher": {
+              "id": "byName",
+              "options": "S3"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Total" },
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
             "properties": [
-              { "id": "unit", "value": "s" },
-              { "id": "decimals", "value": 3 }
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
             ]
           }
         ]
@@ -533,7 +1009,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -545,11 +1024,26 @@
       "id": 8,
       "title": "Position Chart",
       "type": "timeseries",
-      "gridPos": { "x": 0, "y": 15, "w": 12, "h": 8 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "fieldConfig": {
         "defaults": {
@@ -561,16 +1055,26 @@
             "showPoints": "never",
             "spanNulls": false,
             "axisPlacement": "auto",
-            "scaleDistribution": { "type": "linear" }
+            "scaleDistribution": {
+              "type": "linear"
+            }
           },
-          "color": { "mode": "fixed", "fixedColor": "#00FF00" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#00FF00"
+          },
           "decimals": 0,
           "min": 20,
           "max": 1,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": []
@@ -578,7 +1082,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
@@ -590,11 +1097,26 @@
       "id": 9,
       "title": "Gap Trend",
       "type": "timeseries",
-      "gridPos": { "x": 12, "y": 15, "w": 12, "h": 8 },
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "postgres",
+        "uid": "timescaledb"
+      },
       "options": {
-        "tooltip": { "mode": "single", "sort": "none" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "fieldConfig": {
         "defaults": {
@@ -607,13 +1129,21 @@
             "spanNulls": false,
             "axisPlacement": "auto"
           },
-          "color": { "mode": "fixed", "fixedColor": "#FFD700" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FFD700"
+          },
           "unit": "s",
           "decimals": 3,
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": []
@@ -621,7 +1151,10 @@
       "targets": [
         {
           "refId": "A",
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "timescaledb"
+          },
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",

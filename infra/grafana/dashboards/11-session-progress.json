@@ -1,0 +1,575 @@
+{
+  "uid": "session-progress",
+  "title": "Session Progress",
+  "tags": ["f1", "telemetry", "post-session"],
+  "timezone": "browser",
+  "refresh": "",
+  "liveNow": false,
+  "schemaVersion": 39,
+  "graphTooltip": 2,
+  "time": { "from": "now-24h", "to": "now" },
+  "fiscalYearStartMonth": 0,
+  "editable": true,
+  "links": [
+    {
+      "title": "Overview",
+      "url": "/d/overview-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Live Timing",
+      "url": "/d/live-timing-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Race Engineer",
+      "url": "/d/car-telemetry-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Health",
+      "url": "/d/tyre-health-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Analysis",
+      "url": "/d/driver-analysis-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy",
+      "url": "/d/strategy-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Debrief",
+      "url": "/d/debrief-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Lap Comparison",
+      "url": "/d/lap-comparison",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Degradation",
+      "url": "/d/tyre-degradation",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Performance",
+      "url": "/d/driver-performance",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy Review",
+      "url": "/d/strategy-retrospective",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "ERS & Fuel",
+      "url": "/d/ers-fuel-review",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "label": "Session",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
+        "refresh": 1,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "car_index",
+        "label": "Car",
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": { "selected": true, "text": "0", "value": "0" },
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "compare_session",
+        "label": "Compare Session",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
+        "refresh": 1,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Session List",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT s.session_uid AS \"Session\",\n  MAX(s.time) AS \"Date\",\n  MAX(s.track) AS \"Track\",\n  MAX(s.session_type) AS \"Type\",\n  MAX(sh.num_laps) - 1 AS \"Laps\",\n  MIN(sh.latest_lap_time_ms) FILTER (WHERE sh.latest_lap_time_ms > 0) / 1000.0 AS \"Best Lap\",\n  AVG(sh.latest_lap_time_ms) FILTER (WHERE sh.latest_lap_time_ms > 0 AND sh.latest_lap_valid = true) / 1000.0 AS \"Avg Lap\",\n  STDDEV(sh.latest_lap_time_ms) FILTER (WHERE sh.latest_lap_time_ms > 0 AND sh.latest_lap_valid = true) / 1000.0 AS \"Std Dev\"\nFROM session s\nJOIN session_history sh ON sh.session_uid = s.session_uid AND sh.car_index = $car_index\nGROUP BY s.session_uid\nORDER BY MAX(s.time) DESC\nLIMIT 50"
+        }
+      ],
+      "options": {
+        "footer": { "show": false },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Track" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": { "text": "Melbourne" },
+                      "1": { "text": "Paul Ricard" },
+                      "2": { "text": "Shanghai" },
+                      "3": { "text": "Bahrain" },
+                      "4": { "text": "Catalunya" },
+                      "5": { "text": "Monaco" },
+                      "6": { "text": "Montreal" },
+                      "7": { "text": "Silverstone" },
+                      "8": { "text": "Hockenheim" },
+                      "9": { "text": "Hungaroring" },
+                      "10": { "text": "Spa" },
+                      "11": { "text": "Monza" },
+                      "12": { "text": "Singapore" },
+                      "13": { "text": "Suzuka" },
+                      "14": { "text": "Abu Dhabi" },
+                      "15": { "text": "Austin" },
+                      "16": { "text": "Interlagos" },
+                      "17": { "text": "Red Bull Ring" },
+                      "18": { "text": "Sochi" },
+                      "19": { "text": "Mexico" },
+                      "20": { "text": "Baku" },
+                      "21": { "text": "Sakhir Short" },
+                      "22": { "text": "Silverstone Short" },
+                      "23": { "text": "Austin Short" },
+                      "24": { "text": "Suzuka Short" },
+                      "25": { "text": "Hanoi" },
+                      "26": { "text": "Zandvoort" },
+                      "27": { "text": "Imola" },
+                      "28": { "text": "Portimao" },
+                      "29": { "text": "Jeddah" },
+                      "30": { "text": "Miami" },
+                      "31": { "text": "Las Vegas" },
+                      "32": { "text": "Losail" },
+                      "33": { "text": "Lusail Short" }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Type" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": { "text": "Unknown" },
+                      "1": { "text": "P1" },
+                      "2": { "text": "P2" },
+                      "3": { "text": "P3" },
+                      "4": { "text": "Short Practice" },
+                      "5": { "text": "Q1" },
+                      "6": { "text": "Q2" },
+                      "7": { "text": "Q3" },
+                      "8": { "text": "Short Quali" },
+                      "9": { "text": "OSQ" },
+                      "10": { "text": "Race" },
+                      "11": { "text": "Race 2" },
+                      "12": { "text": "Race 3" },
+                      "13": { "text": "Time Trial" }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Best Lap" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Avg Lap" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Std Dev" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "title": "Best Lap per Session",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH session_bests AS (\n  SELECT s.session_uid, MAX(s.time) AS session_time,\n    MIN(sh.latest_lap_time_ms) FILTER (WHERE sh.latest_lap_time_ms > 0) / 1000.0 AS best_lap\n  FROM session s\n  JOIN session_history sh ON sh.session_uid = s.session_uid AND sh.car_index = $car_index\n  GROUP BY s.session_uid\n  ORDER BY session_time ASC\n)\nSELECT ROW_NUMBER() OVER (ORDER BY session_time) AS \"Session #\", best_lap AS \"Best Lap (s)\"\nFROM session_bests"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#A020F0" },
+          "unit": "s",
+          "decimals": 3,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Consistency Over Sessions",
+      "type": "xychart",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH session_stats AS (\n  SELECT s.session_uid, MAX(s.time) AS session_time,\n    STDDEV(sh.latest_lap_time_ms) FILTER (WHERE sh.latest_lap_time_ms > 0 AND sh.latest_lap_valid = true) / 1000.0 AS std_dev\n  FROM session s\n  JOIN session_history sh ON sh.session_uid = s.session_uid AND sh.car_index = $car_index\n  GROUP BY s.session_uid\n  ORDER BY session_time ASC\n)\nSELECT ROW_NUMBER() OVER (ORDER BY session_time) AS \"Session #\", std_dev AS \"Consistency (s)\"\nFROM session_stats"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#FFD700" },
+          "unit": "s",
+          "decimals": 3,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 1.0 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Best Sector Times per Session",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH session_sectors AS (\n  SELECT s.session_uid, MAX(s.time) AS session_time,\n    MIN(sh.latest_sector1_time_ms) FILTER (WHERE sh.latest_sector1_time_ms > 0) / 1000.0 AS best_s1,\n    MIN(sh.latest_sector2_time_ms) FILTER (WHERE sh.latest_sector2_time_ms > 0) / 1000.0 AS best_s2,\n    MIN(sh.latest_sector3_time_ms) FILTER (WHERE sh.latest_sector3_time_ms > 0) / 1000.0 AS best_s3\n  FROM session s\n  JOIN session_history sh ON sh.session_uid = s.session_uid AND sh.car_index = $car_index\n  GROUP BY s.session_uid\n  ORDER BY session_time ASC\n)\nSELECT ROW_NUMBER() OVER (ORDER BY session_time) AS \"Session #\",\n  best_s1 AS \"Best S1\", best_s2 AS \"Best S2\", best_s3 AS \"Best S3\"\nFROM session_sectors"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Best S1" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF4444" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Best S2" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#44FF44" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Best S3" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#4488FF" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "title": "Clean Lap Rate per Session",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH session_clean AS (\n  SELECT s.session_uid, MAX(s.time) AS session_time,\n    ROUND(100.0 * COUNT(*) FILTER (WHERE sh.latest_lap_valid = true) / NULLIF(COUNT(*), 0), 1) AS clean_pct\n  FROM session s\n  JOIN session_history sh ON sh.session_uid = s.session_uid AND sh.car_index = $car_index AND sh.latest_lap_time_ms > 0\n  GROUP BY s.session_uid\n  ORDER BY session_time ASC\n)\nSELECT ROW_NUMBER() OVER (ORDER BY session_time) AS \"Session #\", clean_pct AS \"Clean Lap %\"\nFROM session_clean"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#00FF00" },
+          "unit": "percent",
+          "decimals": 1,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "title": "Theoretical Best per Session",
+      "type": "xychart",
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH session_theo AS (\n  SELECT s.session_uid, MAX(s.time) AS session_time,\n    (MIN(sh.latest_sector1_time_ms) FILTER (WHERE sh.latest_sector1_time_ms > 0)\n     + MIN(sh.latest_sector2_time_ms) FILTER (WHERE sh.latest_sector2_time_ms > 0)\n     + MIN(sh.latest_sector3_time_ms) FILTER (WHERE sh.latest_sector3_time_ms > 0)) / 1000.0 AS theoretical\n  FROM session s\n  JOIN session_history sh ON sh.session_uid = s.session_uid AND sh.car_index = $car_index\n  GROUP BY s.session_uid\n  ORDER BY session_time ASC\n)\nSELECT ROW_NUMBER() OVER (ORDER BY session_time) AS \"Session #\", theoretical AS \"Theoretical Best (s)\"\nFROM session_theo"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#00FF00" },
+          "unit": "s",
+          "decimals": 3,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 7,
+      "title": "Speed Trace — Session A vs B",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 32, "w": 24, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH best_lap AS (\n  SELECT ROW_NUMBER() OVER (ORDER BY time ASC) AS lap_num, latest_lap_time_ms\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY latest_lap_time_ms ASC\n  LIMIT 1\n)\nSELECT ld.lap_distance AS \"Distance\", ct.speed AS \"Session A Speed\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index\n  AND ld.current_lap_num = (SELECT lap_num FROM best_lap)\n  AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH best_lap AS (\n  SELECT ROW_NUMBER() OVER (ORDER BY time ASC) AS lap_num, latest_lap_time_ms\n  FROM session_history\n  WHERE session_uid='$compare_session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY latest_lap_time_ms ASC\n  LIMIT 1\n)\nSELECT ld.lap_distance AS \"Distance\", ct.speed AS \"Session B Speed\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$compare_session' AND ct.car_index=$car_index\n  AND ld.current_lap_num = (SELECT lap_num FROM best_lap)\n  AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisLabel": "Speed (km/h)"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Session A Speed" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#4488FF" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Session B Speed" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF8800" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "title": "Total Sessions",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 42, "w": 6, "h": 4 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT now() AS time, COUNT(DISTINCT session_uid) AS \"Total Sessions\" FROM session"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}
