@@ -1,0 +1,674 @@
+{
+  "uid": "lap-comparison",
+  "title": "Lap Comparison",
+  "tags": ["f1", "telemetry", "post-session"],
+  "timezone": "browser",
+  "refresh": "",
+  "liveNow": false,
+  "schemaVersion": 39,
+  "graphTooltip": 2,
+  "time": { "from": "now-24h", "to": "now" },
+  "fiscalYearStartMonth": 0,
+  "editable": true,
+  "links": [
+    {
+      "title": "Overview",
+      "url": "/d/overview-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Live Timing",
+      "url": "/d/live-timing-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Race Engineer",
+      "url": "/d/car-telemetry-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Health",
+      "url": "/d/tyre-health-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Analysis",
+      "url": "/d/driver-analysis-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy",
+      "url": "/d/strategy-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Debrief",
+      "url": "/d/debrief-pw",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Tyre Degradation",
+      "url": "/d/tyre-degradation",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Driver Performance",
+      "url": "/d/driver-performance",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Strategy Review",
+      "url": "/d/strategy-retrospective",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "Session Progress",
+      "url": "/d/session-progress",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    },
+    {
+      "title": "ERS & Fuel",
+      "url": "/d/ers-fuel-review",
+      "includeVars": true,
+      "keepTime": true,
+      "type": "link",
+      "targetBlank": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "label": "Session",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT session_uid FROM session GROUP BY session_uid ORDER BY MAX(time) DESC LIMIT 20",
+        "refresh": 1,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "car_index",
+        "label": "Car",
+        "type": "custom",
+        "query": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+        "current": { "selected": true, "text": "0", "value": "0" },
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "lap_a",
+        "label": "Lap A",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT DISTINCT current_lap_num FROM lap_data WHERE session_uid='$session' AND car_index=$car_index AND current_lap_num > 0 ORDER BY current_lap_num",
+        "refresh": 2,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      },
+      {
+        "name": "lap_b",
+        "label": "Lap B",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "timescaledb" },
+        "query": "SELECT DISTINCT current_lap_num FROM lap_data WHERE session_uid='$session' AND car_index=$car_index AND current_lap_num > 0 ORDER BY current_lap_num",
+        "refresh": 2,
+        "sort": 0,
+        "includeAll": false,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Lap A Summary",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH lap_info AS (\n  SELECT sh.latest_lap_time_ms, sh.latest_sector1_time_ms, sh.latest_sector2_time_ms, sh.latest_sector3_time_ms, sh.time\n  FROM session_history sh\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n  ORDER BY sh.time ASC\n  LIMIT 1 OFFSET $lap_a - 1\n)\nSELECT now() AS time,\n  li.latest_lap_time_ms / 1000.0 AS \"Total\",\n  li.latest_sector1_time_ms / 1000.0 AS \"S1\",\n  li.latest_sector2_time_ms / 1000.0 AS \"S2\",\n  li.latest_sector3_time_ms / 1000.0 AS \"S3\"\nFROM lap_info li"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "fixed", "fixedColor": "#4488FF" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#4488FF", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "title": "Lap B Summary",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH lap_info AS (\n  SELECT sh.latest_lap_time_ms, sh.latest_sector1_time_ms, sh.latest_sector2_time_ms, sh.latest_sector3_time_ms, sh.time\n  FROM session_history sh\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n  ORDER BY sh.time ASC\n  LIMIT 1 OFFSET $lap_b - 1\n)\nSELECT now() AS time,\n  li.latest_lap_time_ms / 1000.0 AS \"Total\",\n  li.latest_sector1_time_ms / 1000.0 AS \"S1\",\n  li.latest_sector2_time_ms / 1000.0 AS \"S2\",\n  li.latest_sector3_time_ms / 1000.0 AS \"S3\"\nFROM lap_info li"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "fixed", "fixedColor": "#FF8800" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "#FF8800", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Delta",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 5 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH lap_a AS (\n  SELECT latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms, latest_sector3_time_ms\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY time ASC LIMIT 1 OFFSET $lap_a - 1\n),\nlap_b AS (\n  SELECT latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms, latest_sector3_time_ms\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY time ASC LIMIT 1 OFFSET $lap_b - 1\n)\nSELECT now() AS time,\n  (lap_a.latest_lap_time_ms - lap_b.latest_lap_time_ms) / 1000.0 AS \"Delta\",\n  (lap_a.latest_sector1_time_ms - lap_b.latest_sector1_time_ms) / 1000.0 AS \"S1 \u0394\",\n  (lap_a.latest_sector2_time_ms - lap_b.latest_sector2_time_ms) / 1000.0 AS \"S2 \u0394\",\n  (lap_a.latest_sector3_time_ms - lap_b.latest_sector3_time_ms) / 1000.0 AS \"S3 \u0394\"\nFROM lap_a, lap_b"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "textMode": "auto",
+        "colorMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0 },
+              { "color": "red", "value": 0.001 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Speed vs Distance",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 5, "w": 16, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.speed AS \"Lap A Speed\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_a AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.speed AS \"Lap B Speed\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_b AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisLabel": "Speed (km/h)"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Lap A Speed" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#4488FF" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Lap B Speed" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF8800" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "title": "Speed Delta",
+      "type": "xychart",
+      "gridPos": { "x": 16, "y": 5, "w": 8, "h": 10 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH lap_a_data AS (\n  SELECT FLOOR(ld.lap_distance / 10) * 10 AS dist_bucket, AVG(ct.speed) AS avg_speed\n  FROM car_telemetry ct\n  JOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\n  WHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_a AND ld.lap_distance >= 0\n  GROUP BY dist_bucket\n),\nlap_b_data AS (\n  SELECT FLOOR(ld.lap_distance / 10) * 10 AS dist_bucket, AVG(ct.speed) AS avg_speed\n  FROM car_telemetry ct\n  JOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\n  WHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_b AND ld.lap_distance >= 0\n  GROUP BY dist_bucket\n)\nSELECT a.dist_bucket AS \"Distance\", (a.avg_speed - b.avg_speed) AS \"Speed \u0394 (A-B)\"\nFROM lap_a_data a JOIN lap_b_data b ON a.dist_bucket = b.dist_bucket\nORDER BY a.dist_bucket"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#FFD700" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "title": "Throttle Overlay",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 15, "w": 8, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.throttle AS \"Lap A Throttle\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_a AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.throttle AS \"Lap B Throttle\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_b AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Lap A Throttle" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#4488FF" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Lap B Throttle" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF8800" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "title": "Brake Overlay",
+      "type": "xychart",
+      "gridPos": { "x": 8, "y": 15, "w": 8, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.brake AS \"Lap A Brake\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_a AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.brake AS \"Lap B Brake\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_b AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Lap A Brake" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF4444" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Lap B Brake" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF8800" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "title": "Gear Overlay",
+      "type": "xychart",
+      "gridPos": { "x": 16, "y": 15, "w": 8, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.gear AS \"Lap A Gear\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_a AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.gear AS \"Lap B Gear\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_b AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineInterpolation": "stepAfter"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Lap A Gear" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#44FF44" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Lap B Gear" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF8800" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "title": "Cumulative Time Delta vs Distance",
+      "type": "xychart",
+      "gridPos": { "x": 0, "y": 23, "w": 16, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH lap_a_data AS (\n  SELECT FLOOR(ld.lap_distance / 10) * 10 AS dist_bucket, AVG(ld.current_lap_time_ms) AS avg_time\n  FROM lap_data ld\n  WHERE ld.session_uid='$session' AND ld.car_index=$car_index AND ld.current_lap_num = $lap_a AND ld.lap_distance >= 0\n  GROUP BY dist_bucket\n),\nlap_b_data AS (\n  SELECT FLOOR(ld.lap_distance / 10) * 10 AS dist_bucket, AVG(ld.current_lap_time_ms) AS avg_time\n  FROM lap_data ld\n  WHERE ld.session_uid='$session' AND ld.car_index=$car_index AND ld.current_lap_num = $lap_b AND ld.lap_distance >= 0\n  GROUP BY dist_bucket\n)\nSELECT a.dist_bucket AS \"Distance\", (a.avg_time - b.avg_time) / 1000.0 AS \"Cumulative \u0394 (s)\"\nFROM lap_a_data a JOIN lap_b_data b ON a.dist_bucket = b.dist_bucket\nORDER BY a.dist_bucket"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#FFD700" },
+          "custom": {
+            "axisLabel": "Time Delta (s)"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 10,
+      "title": "Steering Overlay",
+      "type": "xychart",
+      "gridPos": { "x": 16, "y": 23, "w": 8, "h": 8 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.steer AS \"Lap A Steer\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_a AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        },
+        {
+          "refId": "B",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "SELECT ld.lap_distance AS \"Distance\", ct.steer AS \"Lap B Steer\"\nFROM car_telemetry ct\nJOIN lap_data ld ON ld.session_uid = ct.session_uid AND ld.car_index = ct.car_index AND ld.frame_id = ct.frame_id\nWHERE ct.session_uid='$session' AND ct.car_index=$car_index AND ld.current_lap_num = $lap_b AND ld.lap_distance >= 0\nORDER BY ld.lap_distance"
+        }
+      ],
+      "options": {
+        "seriesMapping": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Lap A Steer" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF44FF" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Lap B Steer" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "#FF8800" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "title": "Time Lost per Sector",
+      "type": "barchart",
+      "gridPos": { "x": 0, "y": 31, "w": 24, "h": 6 },
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "rawQuery": true,
+          "editorMode": "code",
+          "format": "table",
+          "rawSql": "WITH lap_a AS (\n  SELECT latest_sector1_time_ms AS s1, latest_sector2_time_ms AS s2, latest_sector3_time_ms AS s3\n  FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY time ASC LIMIT 1 OFFSET $lap_a - 1\n),\nlap_b AS (\n  SELECT latest_sector1_time_ms AS s1, latest_sector2_time_ms AS s2, latest_sector3_time_ms AS s3\n  FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY time ASC LIMIT 1 OFFSET $lap_b - 1\n)\nSELECT 'S1' AS \"Sector\", (lap_a.s1 - lap_b.s1) / 1000.0 AS \"Delta (s)\" FROM lap_a, lap_b\nUNION ALL\nSELECT 'S2', (lap_a.s2 - lap_b.s2) / 1000.0 FROM lap_a, lap_b\nUNION ALL\nSELECT 'S3', (lap_a.s3 - lap_b.s3) / 1000.0 FROM lap_a, lap_b"
+        }
+      ],
+      "options": {
+        "xField": "Sector",
+        "barWidth": 0.6,
+        "groupWidth": 0.7,
+        "fillOpacity": 80,
+        "gradientMode": "none",
+        "orientation": "auto",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0 },
+              { "color": "red", "value": 0.001 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}
