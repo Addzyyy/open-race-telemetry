@@ -229,3 +229,10 @@ SELECT create_hypertable('final_classification', 'time', if_not_exists => TRUE);
 
 CREATE INDEX IF NOT EXISTS idx_final_classification_session
     ON final_classification (session_uid, car_index, time DESC);
+
+-- Performance indexes for post-session analysis dashboards
+CREATE INDEX IF NOT EXISTS idx_lap_data_lap_num
+    ON lap_data (session_uid, car_index, current_lap_num, frame_id);
+
+CREATE INDEX IF NOT EXISTS idx_session_history_session_lap
+    ON session_history (session_uid, car_index, num_laps);
