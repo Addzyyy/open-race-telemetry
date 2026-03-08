@@ -441,10 +441,15 @@
               {
                 "id": "mappings",
                 "value": [
-                  { "type": "value", "options": { "0": { "text": "None" } } },
-                  { "type": "value", "options": { "1": { "text": "Medium" } } },
-                  { "type": "value", "options": { "2": { "text": "Hotlap" } } },
-                  { "type": "value", "options": { "3": { "text": "Overtake" } } }
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": { "text": "None", "index": 0 },
+                      "1": { "text": "Medium", "index": 1 },
+                      "2": { "text": "Hotlap", "index": 2 },
+                      "3": { "text": "Overtake", "index": 3 }
+                    }
+                  }
                 ]
               }
             ]

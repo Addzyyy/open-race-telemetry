@@ -559,7 +559,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "WITH best_lap AS (\n  SELECT ROW_NUMBER() OVER (ORDER BY time ASC) AS lap_num, latest_lap_time_ms\n  FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY latest_lap_time_ms ASC LIMIT 1\n)\nSELECT cm.g_force_lateral AS x, cm.g_force_longitudinal AS y\nFROM car_motion cm\nJOIN lap_data ld ON ld.session_uid = cm.session_uid AND ld.car_index = cm.car_index AND ld.frame_id = cm.frame_id\nWHERE cm.session_uid='$session' AND cm.car_index=$car_index\n  AND ld.current_lap_num = (SELECT lap_num FROM best_lap)\nORDER BY cm.time"
+          "rawSql": "WITH best_lap AS (\n  SELECT best_lap_time_lap_num\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND best_lap_time_lap_num > 0\n  ORDER BY time DESC LIMIT 1\n)\nSELECT cm.g_force_lateral AS x, cm.g_force_longitudinal AS y\nFROM car_motion cm\nJOIN lap_data ld ON ld.session_uid = cm.session_uid AND ld.car_index = cm.car_index AND ld.frame_id = cm.frame_id\nWHERE cm.session_uid='$session' AND cm.car_index=$car_index\n  AND ld.current_lap_num = (SELECT best_lap_time_lap_num FROM best_lap)\nORDER BY cm.time"
         }
       ],
       "fieldConfig": {

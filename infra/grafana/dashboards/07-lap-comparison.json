@@ -172,7 +172,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "WITH lap_info AS (\n  SELECT sh.latest_lap_time_ms, sh.latest_sector1_time_ms, sh.latest_sector2_time_ms, sh.latest_sector3_time_ms, sh.time\n  FROM session_history sh\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n  ORDER BY sh.time ASC\n  LIMIT 1 OFFSET $lap_a - 1\n)\nSELECT now() AS time,\n  li.latest_lap_time_ms / 1000.0 AS \"Total\",\n  li.latest_sector1_time_ms / 1000.0 AS \"S1\",\n  li.latest_sector2_time_ms / 1000.0 AS \"S2\",\n  li.latest_sector3_time_ms / 1000.0 AS \"S3\"\nFROM lap_info li"
+          "rawSql": "WITH lap_info AS (\n  SELECT DISTINCT ON (num_laps) latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms, latest_sector3_time_ms, num_laps\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY num_laps, time DESC\n)\nSELECT now() AS time,\n  li.latest_lap_time_ms / 1000.0 AS \"Total\",\n  li.latest_sector1_time_ms / 1000.0 AS \"S1\",\n  li.latest_sector2_time_ms / 1000.0 AS \"S2\",\n  li.latest_sector3_time_ms / 1000.0 AS \"S3\"\nFROM lap_info li\nORDER BY li.num_laps ASC\nLIMIT 1 OFFSET $lap_a - 1"
         }
       ],
       "options": {
@@ -213,7 +213,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "WITH lap_info AS (\n  SELECT sh.latest_lap_time_ms, sh.latest_sector1_time_ms, sh.latest_sector2_time_ms, sh.latest_sector3_time_ms, sh.time\n  FROM session_history sh\n  WHERE sh.session_uid='$session' AND sh.car_index=$car_index AND sh.latest_lap_time_ms > 0\n  ORDER BY sh.time ASC\n  LIMIT 1 OFFSET $lap_b - 1\n)\nSELECT now() AS time,\n  li.latest_lap_time_ms / 1000.0 AS \"Total\",\n  li.latest_sector1_time_ms / 1000.0 AS \"S1\",\n  li.latest_sector2_time_ms / 1000.0 AS \"S2\",\n  li.latest_sector3_time_ms / 1000.0 AS \"S3\"\nFROM lap_info li"
+          "rawSql": "WITH lap_info AS (\n  SELECT DISTINCT ON (num_laps) latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms, latest_sector3_time_ms, num_laps\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY num_laps, time DESC\n)\nSELECT now() AS time,\n  li.latest_lap_time_ms / 1000.0 AS \"Total\",\n  li.latest_sector1_time_ms / 1000.0 AS \"S1\",\n  li.latest_sector2_time_ms / 1000.0 AS \"S2\",\n  li.latest_sector3_time_ms / 1000.0 AS \"S3\"\nFROM lap_info li\nORDER BY li.num_laps ASC\nLIMIT 1 OFFSET $lap_b - 1"
         }
       ],
       "options": {
@@ -254,7 +254,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "WITH lap_a AS (\n  SELECT latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms, latest_sector3_time_ms\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY time ASC LIMIT 1 OFFSET $lap_a - 1\n),\nlap_b AS (\n  SELECT latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms, latest_sector3_time_ms\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY time ASC LIMIT 1 OFFSET $lap_b - 1\n)\nSELECT now() AS time,\n  (lap_a.latest_lap_time_ms - lap_b.latest_lap_time_ms) / 1000.0 AS \"Delta\",\n  (lap_a.latest_sector1_time_ms - lap_b.latest_sector1_time_ms) / 1000.0 AS \"S1 \u0394\",\n  (lap_a.latest_sector2_time_ms - lap_b.latest_sector2_time_ms) / 1000.0 AS \"S2 \u0394\",\n  (lap_a.latest_sector3_time_ms - lap_b.latest_sector3_time_ms) / 1000.0 AS \"S3 \u0394\"\nFROM lap_a, lap_b"
+          "rawSql": "WITH deduped AS (\n  SELECT DISTINCT ON (num_laps) latest_lap_time_ms, latest_sector1_time_ms, latest_sector2_time_ms, latest_sector3_time_ms, num_laps\n  FROM session_history\n  WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY num_laps, time DESC\n),\nlap_a AS (\n  SELECT * FROM deduped ORDER BY num_laps ASC LIMIT 1 OFFSET $lap_a - 1\n),\nlap_b AS (\n  SELECT * FROM deduped ORDER BY num_laps ASC LIMIT 1 OFFSET $lap_b - 1\n)\nSELECT now() AS time,\n  (lap_a.latest_lap_time_ms - lap_b.latest_lap_time_ms) / 1000.0 AS \"Delta\",\n  (lap_a.latest_sector1_time_ms - lap_b.latest_sector1_time_ms) / 1000.0 AS \"S1 \u0394\",\n  (lap_a.latest_sector2_time_ms - lap_b.latest_sector2_time_ms) / 1000.0 AS \"S2 \u0394\",\n  (lap_a.latest_sector3_time_ms - lap_b.latest_sector3_time_ms) / 1000.0 AS \"S3 \u0394\"\nFROM lap_a, lap_b"
         }
       ],
       "options": {
@@ -639,7 +639,7 @@
           "rawQuery": true,
           "editorMode": "code",
           "format": "table",
-          "rawSql": "WITH lap_a AS (\n  SELECT latest_sector1_time_ms AS s1, latest_sector2_time_ms AS s2, latest_sector3_time_ms AS s3\n  FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY time ASC LIMIT 1 OFFSET $lap_a - 1\n),\nlap_b AS (\n  SELECT latest_sector1_time_ms AS s1, latest_sector2_time_ms AS s2, latest_sector3_time_ms AS s3\n  FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY time ASC LIMIT 1 OFFSET $lap_b - 1\n)\nSELECT 'S1' AS \"Sector\", (lap_a.s1 - lap_b.s1) / 1000.0 AS \"Delta (s)\" FROM lap_a, lap_b\nUNION ALL\nSELECT 'S2', (lap_a.s2 - lap_b.s2) / 1000.0 FROM lap_a, lap_b\nUNION ALL\nSELECT 'S3', (lap_a.s3 - lap_b.s3) / 1000.0 FROM lap_a, lap_b"
+          "rawSql": "WITH deduped AS (\n  SELECT DISTINCT ON (num_laps) latest_sector1_time_ms, latest_sector2_time_ms, latest_sector3_time_ms, num_laps\n  FROM session_history WHERE session_uid='$session' AND car_index=$car_index AND latest_lap_time_ms > 0\n  ORDER BY num_laps, time DESC\n),\nlap_a AS (\n  SELECT latest_sector1_time_ms AS s1, latest_sector2_time_ms AS s2, latest_sector3_time_ms AS s3\n  FROM deduped ORDER BY num_laps ASC LIMIT 1 OFFSET $lap_a - 1\n),\nlap_b AS (\n  SELECT latest_sector1_time_ms AS s1, latest_sector2_time_ms AS s2, latest_sector3_time_ms AS s3\n  FROM deduped ORDER BY num_laps ASC LIMIT 1 OFFSET $lap_b - 1\n)\nSELECT 'S1' AS \"Sector\", (lap_a.s1 - lap_b.s1) / 1000.0 AS \"Delta (s)\" FROM lap_a, lap_b\nUNION ALL\nSELECT 'S2', (lap_a.s2 - lap_b.s2) / 1000.0 FROM lap_a, lap_b\nUNION ALL\nSELECT 'S3', (lap_a.s3 - lap_b.s3) / 1000.0 FROM lap_a, lap_b"
         }
       ],
       "options": {
