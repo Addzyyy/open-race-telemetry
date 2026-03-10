@@ -225,7 +225,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "value"
+            "mode": "fixed"
           },
           "mappings": [
             {
