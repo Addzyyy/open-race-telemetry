@@ -2,10 +2,20 @@
 
 Open-source, local-first sim racing telemetry pipeline for **EA F1 25**. Captures UDP telemetry from the game, streams it through Kafka into TimescaleDB, and visualises everything in Grafana — all running locally via Docker Compose.
 
-```
-F1 25 (UDP) ──► UdpListener ──► Kafka ──► Consumer ──► TimescaleDB ──► Grafana
-   20777          decode &        9 topics     batch         8 hyper-      13 dash-
-                  map events                   flush         tables        boards
+```mermaid
+flowchart LR
+    F1["🏎️ F1 25\nUDP :20777"]
+    UDP["UdpListener\n_decode & map_"]
+    K["Kafka\n_9 topics_"]
+    C["Consumer\n_batch flush_"]
+    TS["TimescaleDB\n_8 hypertables_"]
+    G["Grafana\n_13 dashboards_"]
+
+    F1 -->|raw packets| UDP
+    UDP -->|canonical events| K
+    K --> C
+    C -->|COPY binary| TS
+    TS --> G
 ```
 
 ## Features
