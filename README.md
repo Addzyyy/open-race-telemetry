@@ -2,6 +2,8 @@
 
 Open-source, local-first sim racing telemetry pipeline for **EA F1 25**. Captures UDP telemetry from the game, streams it through Kafka into TimescaleDB, and visualises everything in Grafana — all running locally via Docker Compose.
 
+> **Where this is heading:** Domain microservices (tyres, engine, strategy) will consume Kafka streams to perform real-time analysis and aggregation. An LLM-powered **AI Race Engineer** will then query that enriched data to give you live strategy calls, tyre recommendations, and post-session debriefs — like having a real engineer on your pit wall.
+
 <p align="center">
   <img src="docs/images/architecture.svg" alt="Architecture: F1 25 → UdpListener → Kafka → Consumer → TimescaleDB → Grafana" width="100%"/>
 </p>
@@ -180,7 +182,20 @@ dotnet format src/TelemetryIngester
 
 ## Roadmap
 
-This repo is the data infrastructure layer. An **AI Race Engineer** desktop app (separate repo) will build on top of this telemetry pipeline to provide real-time strategy recommendations and voice coaching.
+This repo is the **data infrastructure layer** — the foundation for a larger AI-powered race engineer system.
+
+### Domain Microservices
+The next phase introduces dedicated microservices that consume Kafka streams and perform real-time processing, analysis, and aggregation for specific domains:
+
+- **Tyre Service** — degradation modelling, optimal pit window prediction, compound performance comparison
+- **Engine & ERS Service** — fuel consumption forecasting, ERS deployment strategy, MGU-K/H harvesting efficiency
+- **Strategy Service** — undercut/overcut analysis, gap management, weather-adjusted race planning
+- **Driver Performance Service** — consistency metrics, braking point analysis, corner-by-corner benchmarking
+
+Each service reads from the relevant Kafka topics, maintains its own domain state, and writes enriched insights back to the database.
+
+### AI Race Engineer
+An **AI Race Engineer** desktop app (separate repo) will sit on top of these services. An LLM queries the enriched domain data to act as your race engineer — providing real-time strategy calls, tyre change recommendations, fuel mode advice, and post-session debrief analysis, all grounded in your actual telemetry data.
 
 ## Contributing
 
