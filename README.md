@@ -195,7 +195,7 @@ The next phase introduces dedicated microservices that consume Kafka streams and
 Each service reads from the relevant Kafka topics, maintains its own domain state, and writes enriched insights back to the database.
 
 ### AI Race Engineer
-An **AI Race Engineer** desktop app (separate repo) will sit on top of these services. An LLM queries the enriched domain data to act as your race engineer — providing real-time strategy calls, tyre change recommendations, fuel mode advice, and post-session debrief analysis, all grounded in your actual telemetry data.
+An **AI Race Engineer** desktop app (separate repo) will sit on top of these services — modelled on how a real F1 pit wall operates. Just like in a real team, a lead race engineer delegates to specialists: a tyre engineer monitoring degradation and grip, a performance engineer tracking driver inputs and lap consistency, a strategist running pit window scenarios, and a power unit engineer managing fuel and ERS. Each sub-agent queries its own domain service, and the lead engineer synthesises their reports into clear, actionable calls over your pit wall — when to box, which compound to take, when to push, and when to manage.
 
 ## Contributing
 
