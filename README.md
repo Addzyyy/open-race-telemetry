@@ -2,7 +2,7 @@
 
 Open-source, local-first sim racing telemetry pipeline for **EA F1 25**. Captures UDP telemetry from the game, streams it through Kafka into TimescaleDB, and visualises everything in Grafana — all running locally via Docker Compose.
 
-> **Where this is heading:** Domain microservices (tyres, engine, strategy) will consume Kafka streams to perform real-time analysis and aggregation. An LLM-powered **AI Race Engineer** will then query that enriched data to give you live strategy calls, tyre recommendations, and post-session debriefs — like having a real engineer on your pit wall.
+> **Where this is heading:** Domain microservices will consume Kafka streams for real-time analysis — tyres, engine, strategy, driver performance — just like the specialist roles on a real F1 pit wall. An LLM-powered **AI Race Engineer** orchestrates sub-agents for each domain, synthesising their insights into live strategy calls, tyre recommendations, and post-session debriefs over your pit wall.
 
 <p align="center">
   <img src="docs/images/architecture.svg" alt="Architecture: F1 25 → UdpListener → Kafka → Consumer → TimescaleDB → Grafana" width="100%"/>
